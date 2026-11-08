@@ -51,6 +51,8 @@ accessible; do not push there).
 
 ## History and known issues (analysis November 2026)
 
+Full history, earlier versions and the Java port: `docs/HISTORY.md`.
+
 - The first commit (upload March 2025, code state May 2023) is the clean baseline.
   An automated patch session in July 2026 damaged a local copy (broken
   `safe_contains.m`, missing `end` in `combicalc.m`); do not reintroduce those changes.
