@@ -79,9 +79,9 @@ else
    Year           	= fread (fid,1,'uint16'); %{ 97} word;        {Entstehungsdatum des Signals}
    Start           	= fread (fid,1,'int32');%{ 99} int32Int;     {(Nr-1) des ersten Wertes in Datei}
    XachsSchriftLen	= fread (fid,1,'char');	%{102} ?
-   XachsSchrift		= setstr(fread (fid,3,'char'));	%{103} string [3];  {Einheit an der X-Achse}
+   XachsSchrift		= char(fread (fid,3,'char'));	%{103} string [3];  {Einheit an der X-Achse}
    YachsSchriftLen	= fread (fid,1,'char');	%{105} ?
-   YachsSchrift		= setstr(fread (fid,3,'char'));	%{107} string [3];  {Einheit an der Y-Achse}
+   YachsSchrift		= char(fread (fid,3,'char'));	%{107} string [3];  {Einheit an der Y-Achse}
    Rand		    	= fread (fid,2,'int32');		%{111} LRint32Int;   {dargestellter X-Bereich}
    Cursor	    	= fread	(fid,2,'int32');		%{119} LRint32Int;   {Position der Cursorlinien}
    Grundlaufzeit 	= fread (fid,1,'float64');%{127} float64;      { [s] }
@@ -92,9 +92,9 @@ else
    LeftCursOld		= fread (fid,1,'uint16');	%{159} word;        {alt, für Signale bis Länge 65535}
    RightCursOld		= fread (fid,1,'uint16');	%{161} word;        {alt, für Signale bis Länge 65535}
    AddaIdentLen		= fread (fid,1,'char');		%{} ?
-   ADDAident		= setstr(fread (fid,AddaIdentLen,'char'));	%{163} String [20]; {Quantisierung als ASCII-String}
+   ADDAident		= char(fread (fid,AddaIdentLen,'char'));	%{163} String [20]; {Quantisierung als ASCII-String}
    KommentarLen		= fread (fid,1,'char');		%{} ?
-   Kommentar		= setstr(fread (fid,KommentarLen,'char'));	%{184} String [71]; {Beliebiges Blabla}
+   Kommentar		= char(fread (fid,KommentarLen,'char'));	%{184} String [71]; {Beliebiges Blabla}
 
    if Kanalanzahl == 0
       Kanalanzahl = 1;

@@ -112,10 +112,10 @@ switch action
          'BackgroundColor',labelColor);
 
       if get(Hndl.INPUT,'Value') == 4
-         popupStr = str2mat('stairs','tubes','import');
+         popupStr = char('stairs','tubes','import');
          popmode = 3;
       else
-         popupStr = str2mat('stairs','tubes');
+         popupStr = char('stairs','tubes');
          popmode = 2;
       end
 
@@ -201,7 +201,7 @@ switch action
          'String','Rad.-Imp.',...
          'BackgroundColor',labelColor);
 
-      popupStr = str2mat('low f','all f');
+      popupStr = char('low f','all f');
 
       radimp = uicontrol('Style','Popup',...
          'Units','normalized',...

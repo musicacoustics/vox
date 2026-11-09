@@ -144,7 +144,7 @@ switch action
                 filename = get(handles.ed_filename,'String');
                 parapath = get(handles.ed_filepath,'String');
 
-                if findstr(filename,'FE') > 0  & filename ~=  0
+                if ischar(filename) && contains(filename,'FE')
                     parapath = pwd;
                     load([parapath,'\samplepara.mat']);
                 else
@@ -1042,9 +1042,9 @@ switch action
         end;
 
         % check for FE mode
-        if findstr(filename,'FE') > 0 & filename ~=  0
+        if ischar(filename) && contains(filename,'FE')
             PARA = 1;
-        elseif findstr(filename,'out_cF') > 0 & filename ~=  0
+        elseif ischar(filename) && contains(filename,'out_cF')
             PARA = 1;
         else
             PARA = 0;
@@ -1160,14 +1160,14 @@ switch action
                 COF = 0;
             end; % of try - catch
         elseif PARA
-            if findstr(filename,'out_cF') > 0 & filename ~=  0
+            if ischar(filename) && contains(filename,'out_cF')
                 file = filename;
             elseif get(Hndl.FE, 'value') ==  1;
                 file = SD_NAMES(value,:);
                 file(14) = '_';
                 file(15:17) = filename(3:5);
                 file(file ==  ' ') = []; % get rid of extra blanks in filename
-            elseif findstr(filename,'FE') > 0 & filename ~=  0
+            elseif ischar(filename) && contains(filename,'FE')
                 file = filename;
             end;
             try
@@ -1625,7 +1625,7 @@ switch action
             filevalue   = get(Hndl.PARAM,'Value');
             name        = char(outfilename(filevalue));
             COF = 1;
-            if findstr(name,'FE') > 0 & name ~=  0
+            if ischar(name) && contains(name,'FE')
                 filename = name;
                 PARA     = 1;
                 count    = 1;

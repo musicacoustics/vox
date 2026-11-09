@@ -24,7 +24,7 @@ Infold.combicalc = 1;
 
 % FE mode init
 if isfe
-    if findstr(filename,'FE') > 0 & filename ~=  0
+    if ischar(filename) && contains(filename,'FE')
         PARAMANZ = 14;
         fnam = filename;
         fid  = fopen(filename);
@@ -566,7 +566,7 @@ if n_samples > 0
             %         end;
             %         data.suffix = suffix;
             %       combi_filename = [combi_filename data.suffix];
-            if findstr(filename,'FE') > 0 & filename ~=  0
+            if ischar(filename) && contains(filename,'FE')
                 combi_filename(5) = 'c';
                 combi_filename(6) = 'F';
                 combi_filename(14) = '_';
