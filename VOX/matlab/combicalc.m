@@ -509,7 +509,9 @@ if n_samples > 0
 
     display('loop end');
     
-    close(Hndl.mainwaitfigure)
+    if ishghandle(Hndl.mainwaitfigure)   % vox('break') may have closed it already
+        close(Hndl.mainwaitfigure)
+    end
 
     % finish stuff
     BRK = 0;

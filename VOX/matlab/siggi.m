@@ -385,7 +385,9 @@ for n = 1 : 1 : num_it
 end % of loop
 BRK = 0;
 if ALONE
-  close(h1)
+  if ishghandle(h1)   % vox('break') may have closed it already
+    close(h1)
+  end
 end
 
 

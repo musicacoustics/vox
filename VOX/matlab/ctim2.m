@@ -170,5 +170,7 @@ if ii == 0 % stand alone calculation
 end;
 %toc;
 if ii == 0	% stand alone calculation
-   close(Hndl.waitfigure);  % close waitbar
+   if ishghandle(Hndl.waitfigure)   % vox('break') may have closed it already
+      close(Hndl.waitfigure);  % close waitbar
+   end
 end
