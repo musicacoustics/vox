@@ -383,8 +383,8 @@ for n = 1 : 1 : num_it
         end
     end
 end % of loop
-BRK = 0;
 if ALONE
+  BRK = 0;   % in combi mode keep BRK: combicalc checks it after this step
   if ishghandle(h1)   % vox('break') may have closed it already
     close(h1)
   end
