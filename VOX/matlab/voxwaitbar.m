@@ -1,5 +1,6 @@
-function fout = waitbar(x, whichbar, varargin)
-% Display wait bar.
+function fout = voxwaitbar(x, whichbar, varargin)
+% Display wait bar (VOX copy of an old MATLAB waitbar; renamed from waitbar.m
+% so that it no longer shadows the MATLAB function waitbar).
 %   H = WAITBAR(X,'title', property, value, property, value, ...)
 %   creates and displays a waitbar of fractional length X.  The
 %   handle to the waitbar figure is returned in H.

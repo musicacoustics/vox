@@ -39,7 +39,7 @@ if nargin < 2
 end;
 
 if ii < 2	% initialization of tubes etc.
-   Hndl.waitfigure = waitbar(0,'Calculating tract signal...');
+   Hndl.waitfigure = voxwaitbar(0,'Calculating tract signal...');
    t = [0:ntmax-1]/Fs*1000;	% time beam for graphic display
    if nargin == 0	% for test
       lcyl	= [0.05,   0.05];	% test
@@ -85,7 +85,7 @@ for n = 1:ntmax
    if BRK, break, end  % makes it possible to end calculation
    if ii == 0	% stand alone calculation
 %      Hndl.waitfigure=waitbar(n/ntmax,Hndl.waitfigure);
-      Hndl.waitfigure=waitbar(n/ntmax);
+      Hndl.waitfigure=voxwaitbar(n/ntmax);
       inputflow = zeros(ntmax,1);
       inputflow(1) = diracamp/(rho*c);;
       %	  disp('preparation...');

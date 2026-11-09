@@ -224,7 +224,7 @@ if n_samples > 0
                 Hndl.foldmovfig = fullfile(WORKDIR, 'out', ['combimov_' movnum '.fig']);
             end
 
-            Hndl.mainwaitfigure = waitbar(0, 'Calculating combined fold/tract signal...');
+            Hndl.mainwaitfigure = voxwaitbar(0, 'Calculating combined fold/tract signal...');
 
             % why is this:
             BRK      = 0;
@@ -233,7 +233,7 @@ if n_samples > 0
         end   % of if combicalc init
 
 %        Hndl.mainwaitfigure = waitbar(ii/n_samples, Hndl.mainwaitfigure);
-        Hndl.mainwaitfigure = waitbar(ii/n_samples);
+        Hndl.mainwaitfigure = voxwaitbar(ii/n_samples);
 
         % makes it possible to end calculation
         if BRK

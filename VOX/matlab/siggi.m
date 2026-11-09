@@ -32,7 +32,7 @@ ALONE = Infold.flags.ALONE;
 
 % create waitbar ------------------------------------------------------
 if ALONE
-    h1 = waitbar(0, 'Generating vocal fold signal...');
+    h1 = voxwaitbar(0, 'Generating vocal fold signal...');
 end
 
 % initialisation ------------------------------------------------------
@@ -103,7 +103,7 @@ for n = 1 : 1 : num_it
     glotpar;
 
     % calculate flow and resulting pressures -------------------
-    flow;
+    voxflow;   % renamed from flow.m (shadowed the MATLAB function flow)
     press;
 
     % calculate forces on the masses ---------------------------
@@ -379,7 +379,7 @@ for n = 1 : 1 : num_it
     % waitbar step -----------------------------------------------------
     if ALONE
         try
-            waitbar(n/num_it)
+            voxwaitbar(n/num_it)
         end
     end
 end % of loop

@@ -135,14 +135,14 @@ pmr2.junction(1).time(1)=dirac;
 
 % start of calculus loop
 
-Hndl.voctractwaitbar = waitbar(0,'Calculating impulse response...');
+Hndl.voctractwaitbar = voxwaitbar(0,'Calculating impulse response...');
 
 BRK = 0;
 
 for z=1:loop
 
 %   waitbar(z/loop,Hndl.voctractwaitbar)
-    waitbar(z/loop)
+    voxwaitbar(z/loop)
 
    if BRK, break,        end
 
