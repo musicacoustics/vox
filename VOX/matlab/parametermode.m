@@ -31,7 +31,7 @@ switch callback
       parapath = WORKDIR;
       set(handles.ed_filepath,'String',parapath);
       filename = 'parameters.mat';
-      load([WORKDIR,'\parameters.mat']);  % only for generation of datastructure
+      datas = voxprofile();   % template for the structure (parameters.mat is not in the repository)
 
 
    case 'save'
@@ -54,9 +54,14 @@ switch callback
       else
          profilenum = 1;
       end
-      load([parapath, filename]);
+      paramfile = fullfile(parapath, filename);   % parapath may lack a trailing separator
+      if isfile(paramfile)
+         load(paramfile, 'datas');
+      else
+         datas = var([]);   % first profile of a new file: empty struct with the same fields
+      end
       datas(profilenum) = var;
-      save([parapath,filename],'datas');
+      save(paramfile,'datas');
       numstr            = [numstr,profilenum];
       set(handles.pop_profilenum, 'string', numstr);
       set(handles.pop_profilenum, 'Value', profilenum);
@@ -64,21 +69,20 @@ switch callback
    case 'new'
       %===========================================================================================================================
 
-      filenameold = filename;
-      parapathold = parapath;
-      [filename, parapath] = uiputfile('para*.mat',['Welches mat-File soll es sein?']);
-      if filename == 0
-         filename = filenameold;
-         parapath = parapathold;
+      [newname, newpath] = uiputfile('para*.mat',['Welches mat-File soll es sein?']);
+      if isequal(newname, 0)
+         return   % cancelled: keep the current file (it was overwritten with the template before)
       end
+      filename = newname;
+      parapath = newpath;
       set(handles.ed_filename,'String',filename);
       set(handles.ed_filepath,'String',parapath);
       profilenum = 1;
       numstr     = [];
       set(handles.pop_profilenum,'String','0');
       set(handles.pop_profilenum,'Value',1);
-      load([WORKDIR,'\parameters.mat']);  % only for generation of datastructure
-      save([parapath,filename],'datas');   % delete datas
+      datas = voxprofile();   % template for the structure (was parameters.mat, not in the repository)
+      save(fullfile(parapath,filename),'datas');   % delete datas
       set(handles.bt_save,'enable','on');
       set(handles.pop_profilenum,'enable','on');
       set(handles.bt_start,'Enable','on');
@@ -86,7 +90,12 @@ switch callback
    case 'load'
       %===========================================================================================================================
 
-      [filename, parapath] = uigetfile('*.txt',['Welches mat-File soll es sein?']);
+      [loadname, loadpath] = uigetfile({'*.mat;*.txt', 'parameter files (*.mat, FE *.txt)'},['Welches mat-File soll es sein?']);
+      if isequal(loadname, 0)
+         return   % cancelled
+      end
+      filename = loadname;
+      parapath = loadpath;
       set(handles.ed_filename,'String',filename);
       set(handles.ed_filepath,'String',parapath);
       
@@ -102,7 +111,7 @@ switch callback
          %      ,wmaxra(1),wmaxra(2),wmaxra(3)] = textread(filename,'%f %f %f %f %f %f %f %f %f %f %f %f %f',1);
 
 
-         load([parapath,'\samplepara.mat']);
+         load(fullfile(parapath,'samplepara.mat'));
          dim = size(datas,2);
          numstr = [];
          for i = 1:dim
@@ -116,8 +125,8 @@ switch callback
          set(handles.bt_start,'Enable','on');
          parametermode('refresh');
 
-      elseif (filename ~= 0)
-         load([parapath,filename]);
+      else
+         load(fullfile(parapath,filename));
          dim = size(datas,2);
          numstr = [];
          for i = 1:dim
@@ -209,9 +218,9 @@ switch callback
       clear datas;
 
       if ischar(filename) && contains(filename,'FE')
-         load([parapath,'\samplepara.mat']);
+         load(fullfile(parapath,'samplepara.mat'));
       else
-         load([parapath,filename]);
+         load(fullfile(parapath,filename));
       end;
 
       dim = size(datas,2);
