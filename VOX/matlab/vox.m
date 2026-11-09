@@ -764,7 +764,7 @@ switch action
                 SD_NAMES(2,1:6) = 'outzfm';
             elseif get(Hndl.TractDispMode,'value') ==  4  % Imp-glottis
                 TRACTDISP = 4;
-                SD_NAMES(2,1:6) = 'outzfm';
+                SD_NAMES(2,1:6) = 'outzfg';
             end
         else    % stairs or tubes
             if get(Hndl.TractDispMode,'value') ==  1      % FRF
