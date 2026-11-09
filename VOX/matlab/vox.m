@@ -1392,7 +1392,7 @@ switch action
             [filename, pathname] = uigetfile('*.wav', 'choose input file');
             if filename ~=  0
                 %      LASTPATH = data.pathname;
-                [data.y, data.Fs, nbits] = wavread([pathname filename]);
+                [data.y, data.Fs] = audioread(fullfile(pathname, filename));   % wavread has been removed
                 numch = size(data.y,2);
                 if numch > 1
                     ButtonName = questdlg('Which channel?', ...
