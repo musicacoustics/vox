@@ -118,16 +118,15 @@ switch action
         % check working directory
         WORKDIR = fileparts(mfilename('fullpath')); % folder of vox.m (replaces voxpath.mat, works on every computer)
         cd(WORKDIR);
-        outdirmissed = length(dir('out'));
-        if (outdirmissed ==  0)
-            state = mkdir('out'); % create subdirectory "out"
-            if (state ==  1)|(state ==  2)
-                cd('out');            % change working directory to "out"
-                LASTPATH = [WORKDIR,'\out'];
-            else
-                error('Could not create subdirectory ''out''!');
-            end;
-        end;
+        if ~isfolder(fullfile(WORKDIR, 'out'))
+            [state, msg] = mkdir(fullfile(WORKDIR, 'out')); % create subdirectory "out"
+            if ~state
+                error('Could not create subdirectory ''out'': %s', msg);
+            end
+        end
+        % stay in WORKDIR: VOX is not on the MATLAB path and finds its
+        % functions only from here
+        LASTPATH = fullfile(WORKDIR, 'out');
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
         % for external forces
@@ -798,18 +797,20 @@ switch action
             end;
         end;
         %cd('d:\projects\vox\out\');
-        cd(WORKDIR);
-        cd('out');
-        [filename, pathname] = uigetfile(['out' modechar '*.mat'], 'choose input tract file');
-        if filename ~=  0
+        % do not change the working folder (VOX finds its functions only in
+        % WORKDIR); start the dialog in out/ instead
+        [filename, pathname] = uigetfile(fullfile(WORKDIR, 'out', ['out' modechar '*.mat']), 'choose input tract file');
+        if ischar(filename)
             value = 2; % set 2 entry as file entry
             set(Hndl.TractCalcMode, 'Value', 3);
             filename = filename(1:(length(filename)-4));
-            load([pathname filename]);
+            load(fullfile(pathname, filename));
             while length(filename) < 16
                 filename(end+1) = ' ';
             end
             SD_NAMES(value,:) = [filename(1:15)];
+            % vox('input') loads SD_NAMES(value,:) from the working folder
+            save(deblank(SD_NAMES(value,:)), 'data');
             data.filename = filename;
             data.pathname = pathname;
             try
@@ -1409,9 +1410,12 @@ switch action
         end;
 
         if value ==  7   % load Monkey forest dat file
-            cd(LASTPATH);
-            [data.filename, data.pathname] = uigetfile('*.dat', 'choose input file');
-            if data.filename ~=  0
+            startdir = LASTPATH;   % start the dialog there, do not cd
+            if isempty(startdir) || ~isfolder(startdir)
+                startdir = WORKDIR;
+            end
+            [data.filename, data.pathname] = uigetfile(fullfile(startdir, '*.dat'), 'choose input file');
+            if ischar(data.filename)
                 LASTPATH = data.pathname;
                 [data.Fs, data.y] = read_dat([data.pathname data.filename]);
                 numch = size(data.y,1);
@@ -1721,8 +1725,11 @@ switch action
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
     case 'combiload'
-        [filename, pathname] = uigetfile('****c*.mat', 'choose combi input file');
-        vox('input');
+        [loadname, pathname] = uigetfile('****c*.mat', 'choose combi input file');
+        if ischar(loadname)   % dialog not cancelled
+            filename = loadname;
+            vox('input');
+        end
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
         % Fold callback.
     case 'fold'
@@ -1976,13 +1983,19 @@ switch action
         miny = min(s);
         s = (2*s./(maxy-miny)-(maxy+miny)/(maxy-miny))./1.0001;
         figure(372);plot([1:length(s)]./Fs, s);
+        [~, filename] = fileparts(filename);   % 'a.wav' -> 'a', avoids 'a.wav.wav'
         audiowrite([path filename '.wav'], s, data.Fs);
         sound(s, data.Fs);
         %mo
-        try
-            initfilename = ['out_*.wav'];
-            [filename, pathname] = uiputfile(initfilename, 'choose output wav file');
-            audiowrite([pathname filename '.wav'], s, data.Fs);
+        initfilename = ['out_*.wav'];
+        [filename, pathname] = uiputfile(initfilename, 'choose output wav file');
+        if ischar(filename)   % dialog not cancelled
+            [~, filename] = fileparts(filename);   % uiputfile already adds .wav
+            try
+                audiowrite(fullfile(pathname, [filename '.wav']), s, data.Fs);
+            catch err
+                warning('Could not write the WAV file: %s', err.message);
+            end
         end
         % END of WAV callback section
 
