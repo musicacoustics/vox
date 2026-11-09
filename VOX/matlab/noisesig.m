@@ -35,7 +35,7 @@ end
    flowvelocity, glotarea, ii, spacing, radius, St, shedtimer);
 
 if noisemovflag
-   Hndl.noisemov = addframe(Hndl.noisemov,Hndl.noisefig);
+   writeVideo(Hndl.noisemov, getframe(Hndl.noisefig));   % addframe has been removed
 end
 
 [PARNOISE.out, vortices] = vortexnoise(vortices, radius, ...
