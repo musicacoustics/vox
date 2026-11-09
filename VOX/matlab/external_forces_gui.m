@@ -144,7 +144,7 @@ function phaseslider_Callback(hObject, eventdata, handles)
 % set editphase editfield to actual value
 ep   = findobj('Tag', 'editphase');
 oval = get(hObject, 'Value');
-nval = [sprintf('%3.0f', oval*360-180) '°'];
+nval = [sprintf('%3.0f', oval*360-180) 'Â°'];
 set(ep,'String',nval);
 
 
@@ -176,7 +176,7 @@ oval = sscanf(get(hObject, 'String'), '%d');
 nval = (oval+180)/360;
 set(ep,'Value',nval);
 % add degree sign
-set(hObject, 'String', [get(hObject, 'String') '°']);
+set(hObject, 'String', [get(hObject, 'String') 'Â°']);
 
 % --- Executes during object creation, after setting all properties.
 function editphase_CreateFcn(hObject, eventdata, handles)

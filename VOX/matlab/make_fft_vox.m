@@ -7,7 +7,7 @@ function Vek_aus = make_fft_vox(Vek_ein, Linienzahl)
 % Ausgangs-Parameter:
 %		Vek_aus:			gepegeltes Spektrum
 %
-% letzte Änderung 8/97
+% letzte Ã„nderung 8/97
 
 % following lines set timesignal to zero after last zerocrossing
 maxindex=length(Vek_ein);lastindex=maxindex;oldindex=maxindex;

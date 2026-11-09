@@ -1,7 +1,7 @@
 function P = pegel(p)
-% Berechnet den Pegel P einer eingegebenen Größe p
+% Berechnet den Pegel P einer eingegebenen GrÃ¶ÃŸe p
 % ersetzt 0-Eingangswerte durch sehr kleine (verhindert "divide by 0")
-% letzte Änderung 4/97
+% letzte Ã„nderung 4/97
 
 absp = abs(p);
 if min(absp) == 0,

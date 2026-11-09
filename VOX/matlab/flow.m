@@ -89,7 +89,7 @@ if sum_amin > 0
    %  u = c * sum_amin/kt * (-sum_amin/At + sqrt(radikant) );
    %else
    %  u = 0;
-   %  warning('Fluﬂ wurde negativ');
+   %  warning('Flu√ü wurde negativ');
    %end;
 
    %  for i = 1:MAXM % single and sum
@@ -123,7 +123,7 @@ if sum_amin > 0
       %       warning('Radikant below zero!');
       %     end;
    end % single and sum
-   % code written by Nils Alh‰user
+   % code written by Nils Alh√§user
    %
    % u_plus_voc =  u + VOC * u_min_voc;
    % u_min_sub  = -u + SUB * u_plus_sub;
@@ -140,7 +140,7 @@ if sum_amin > 0
    %    else
    %       u(i) = 0;
    %       %      u(i) = amin(i)/(rho*beta(i)) * (-alpha * amin(i) - sqrt(abs(delta(i))));
-   %       warning('Fluﬂ wurde negativ');
+   %       warning('Flu√ü wurde negativ');
    %    end
    % end
    %

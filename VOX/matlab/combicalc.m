@@ -64,7 +64,7 @@ if isfe
 end
 
 % combicalc loop init
-n_samples = ceil(TMAX/1000*Fs);%mo: /1000 für ms
+n_samples = ceil(TMAX/1000*Fs);%mo: /1000 fÃ¼r ms
 t         = [0:n_samples-1]/Fs;   % time beam for graphic display
 kk        = 1;
 ik        = 1; % index of timestep in fe vector
@@ -165,7 +165,7 @@ if n_samples > 0
                 end
                 file(file ==  ' ') = []; % get rid of extra blanks in filename
                 try
-                    foldfile  = load(file);   % hier werden y, filename etc überschrieben!
+                    foldfile  = load(file);   % hier werden y, filename etc Ã¼berschrieben!
                     if foldfile.data.Fs ==  Fs    % file Fs = global Fs -> do nothing
                     elseif foldfile.data.Fs > Fs
                         disp('decimate vocal fold signal...');
