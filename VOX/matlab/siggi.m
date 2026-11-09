@@ -453,8 +453,8 @@ end
 
 % close video file, otherwise we cannot open it
 if GRONF & MOV & ~iscombi & Hndl.movisgood > 0
-    display('saved avifile');
-    Hndl.mov = close (Hndl.mov);
+    disp(['saved movie file: ' fullfile(Hndl.mov.Path, Hndl.mov.Filename)]);
+    close(Hndl.mov);   % VideoWriter close returns nothing
 end
 
 % save area function for later, when external forces is active
@@ -474,7 +474,7 @@ end
     end
 
 % what is this for?
-if GRON & MOV
+if GRON & MOV && isfield(Hndl, 'foldmovfig') && ~isempty(Hndl.foldmovfig)   % empty: movie dialog cancelled
     saveas(Hndl.infofigure,Hndl.foldmovfig)
 end
 

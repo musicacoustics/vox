@@ -192,40 +192,36 @@ if n_samples > 0
 
             % video stuff
             if noisemovflag
-                if ispc %mo
-                        Hndl.noisemov = avifile(['noisemov_' datetime '.avi'], 'fps',20, ...%%%%%%%%%%%
-                               'compression','Indeo5', 'quality',100);
-                else
-                        Hndl.noisemov = avifile(['noisemov_' datetime '.avi'], 'fps',20, ...%%%%%%%%%%%
-                               'compression','none');
-                end
-                %Hndl.noisemov = avifile(['noisemov_' datetime '.avi'], 'fps',20, ...
-                 %   'compression','none', 'quality',100);
+                % avifile has been removed: VideoWriter (find a free file name)
+                noisenum = sprintf('%03d', numel(dir(fullfile(WORKDIR, 'out', 'noisemov_*.avi')))+1);
+                Hndl.noisemov = VideoWriter(fullfile(WORKDIR, 'out', ['noisemov_' noisenum '.avi']), 'Motion JPEG AVI');
+                Hndl.noisemov.FrameRate = 20;
+                Hndl.noisemov.Quality   = 100;
+                open(Hndl.noisemov);
             end
 
             % initiate movie file
+            Hndl.movisgood  = -1;
+            Hndl.foldmovfig = '';
             if GRONF & MOV
                 % find free filename
-                avifiles   = dir('out/combimov_*.avi');
+                avifiles   = dir(fullfile(WORKDIR, 'out', 'combimov_*.avi'));
                 fanz       = size(avifiles, 1)+1;
-                datetime   = sprintf('%03d', fanz);
-                movfilename = ['out/combimov_' datetime '.avi'];
-                % make movie file
-                Hndl.movisgood = -1;
-                try 
-                    if ispc %mo
-                        Hndl.noisemov = avifile(['noisemov_' datetime '.avi'], 'fps',20, ...%%%%%%%%%%%
-                               'compression','Indeo5', 'quality',100);
-                    else
-                        Hndl.noisemov = avifile(['noisemov_' datetime '.avi'], 'fps',20, ...%%%%%%%%%%%
-                               'compression','none');
-                    end
-                    display(['initialized movie file: ' movfilename]);
+                movnum     = sprintf('%03d', fanz);   % was named datetime (hides the function)
+                movfilename = fullfile(WORKDIR, 'out', ['combimov_' movnum '.avi']);
+                % make movie file (avifile has been removed: VideoWriter);
+                % this created Hndl.noisemov before, so no frames were written
+                try
+                    Hndl.mov = VideoWriter(movfilename, 'Motion JPEG AVI');
+                    Hndl.mov.FrameRate = 20;
+                    Hndl.mov.Quality   = 100;
+                    open(Hndl.mov);
+                    disp(['initialized movie file: ' movfilename]);
                     Hndl.movisgood = 1;
-                catch
-                    display('could not init avifile');
+                catch err
+                    disp(['could not init movie file: ' err.message]);
                 end
-                Hndl.foldmovfig = ['combimov_' datetime '.fig'];
+                Hndl.foldmovfig = fullfile(WORKDIR, 'out', ['combimov_' movnum '.fig']);
             end
 
             Hndl.mainwaitfigure = waitbar(0, 'Calculating combined fold/tract signal...');
@@ -524,13 +520,13 @@ if n_samples > 0
         
     % video stuff
     if noisemovflag
-        Hndl.noisemov = close(Hndl.noisemov);
+        close(Hndl.noisemov);   % VideoWriter close returns nothing
     end
 
     % close video file, otherwise we cannot open it
     if GRONF & MOV & Hndl.movisgood > 0
-        display('saved avifile');
-        Hndl.mov = close (Hndl.mov);
+        disp(['saved movie file: ' fullfile(Hndl.mov.Path, Hndl.mov.Filename)]);
+        close(Hndl.mov);
     end
     
     % save area function for later, when external forces is active

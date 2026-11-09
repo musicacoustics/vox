@@ -487,33 +487,30 @@ switch action
             %dialog + set filename and pathname
             [fileName, pathName] = uiputfile('*.avi','Save .avi file');
             %avifiles   = dir('out/foldmov_*.avi');
-            %if (fileName == 0 && pathName == 0)
+            Hndl.movisgood  = -1;
+            Hndl.foldmovfig = '';
+            if ~ischar(fileName)
                 %avi file creation canceled by user
-                %display('avi file creation canceled');
-                %Hndl.movisgood = -1;
-            %else
-                cd (pathName);
-                avifiles   = dir('pathName');
+                disp('movie file creation cancelled');
+            else
+                % no cd(pathName): VOX finds its functions only in WORKDIR
+                avifiles   = dir(fullfile(pathName, 'foldmov_*.fig'));   % was dir('pathName'), always empty
                 fanz       = size(avifiles, 1)+1;
                 movnum     = sprintf('%03d', fanz);   % was named datetime, which hid the datetime function in vox
                 %movfilenam = ['out/foldmov_' datetime '.avi'];
-                movfilename = fileName;
-                % make movie file
-                Hndl.movisgood = -1;
+                movfilename = fullfile(pathName, fileName);
+                % make movie file (avifile/addframe have been removed: VideoWriter)
                 try
-                    if ispc
-                        Hndl.mov = avifile([movfilename], 'fps',20, ...%%%%%%%%%%%
-                               'compression','Indeo5', 'quality',100);
-                    else
-                        Hndl.mov = avifile([movfilename], 'fps',20, ...%%%%%%%%%%%
-                               'compression','none');
-                    end
+                    Hndl.mov = VideoWriter(movfilename, 'Motion JPEG AVI');
+                    Hndl.mov.FrameRate = 20;
+                    Hndl.mov.Quality   = 100;
+                    open(Hndl.mov);
                     Hndl.movisgood = 1;
-                catch
-                     display('could not init avifile');
+                catch err
+                    disp(['could not init movie file: ' err.message]);
                 end
-                Hndl.foldmovfig = ['foldmov_' movnum '.fig'];
-            %end
+                Hndl.foldmovfig = fullfile(pathName, ['foldmov_' movnum '.fig']);
+            end
         end
 
         % (no access to the parameters from outside the function)
