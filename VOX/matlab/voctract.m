@@ -287,4 +287,6 @@ out.segments  = 1:lastj;
 out.h                = h_calc_all;
 y             = h_calc_out;
 z             = z_calc_out;
-close(Hndl.voctractwaitbar)
+if ishghandle(Hndl.voctractwaitbar)   % vox('break') may have closed it already
+   close(Hndl.voctractwaitbar)
+end
