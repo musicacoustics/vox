@@ -392,7 +392,7 @@ if n_samples > 0
                     out_vf_voc, PARNOISE);
                 y_out_all(:,ii) = PARCTIM.output_plus(1:sizetubes,1) + PARCTIM.input_minus(:);
                 if (GRONT ==  1) | (GRONT ==  4)
-                    if figflag('Wave propagation in the vocal tract',1) ==  1
+                    if voxfigflag('Wave propagation in the vocal tract',1) ==  1
                         set(0,'CurrentFigure',Hndl.voctractfig)
                         set(Hndl.voctractfig,'CurrentAxes',Hndl.voctractfigplot)
                         waterfall(t(1:ii), 1:sizetubes, y_out_all);
@@ -442,7 +442,7 @@ if n_samples > 0
             Vektor1 = [minareamm; rvocmm; out_y; glotnoise_vek; sum_uccm];
             Vektor2 = [out_vf_voc_vek; out_vf_trach_vek; pin_gl_ac_vek; ys0];
             Vector3 = Infold.w0lp(1);
-            if (figflag('Sound pressure during calculation',1) ==  1)&(ii>1)   %
+            if (voxfigflag('Sound pressure during calculation',1) ==  1)&(ii>1)   %
                 set(0,'CurrentFigure',Hndl.infofigure)
                 yaxe = Hndl.infofig.yaxe;
                 sig1 = Hndl.infofig.sig1;
@@ -466,7 +466,7 @@ if n_samples > 0
 %                 end
                 %label('p_{sup} (r), p_{sub} (g), p_{s0} (b) [Pa], A_{glot} [mm^2] (m)');
             else   % initialize output
-                if (figflag('Sound pressure during calculation',1) ==  1)
+                if (voxfigflag('Sound pressure during calculation',1) ==  1)
                     close(Hndl.infofigure);
                 end
                 Scrsize   = get(0,'Screensize');
@@ -531,7 +531,7 @@ if n_samples > 0
     
     % save area function for later, when external forces is active
     guiname = 'external_forces_gui';        % name of gui
-    [isda]  = figflag(guiname, 1);
+    [isda]  = voxfigflag(guiname, 1);
     if isda
        Hndl.efgui     = openfig(guiname, 'reuse');
        handles        = guihandles(Hndl.efgui);

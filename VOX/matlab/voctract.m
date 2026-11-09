@@ -175,7 +175,7 @@ for z=1:loop
    end
 
    if GRONT
-      if figflag('Wave propagation in the vocal tract',1) == 1
+      if voxfigflag('Wave propagation in the vocal tract',1) == 1
          set(0,'CurrentFigure',Hndl.voctractfig)
          set(Hndl.voctractfig,'CurrentAxes',Hndl.voctractfigplot)
          waterfall(t(1:z), 1:lastj, h_calc_all);

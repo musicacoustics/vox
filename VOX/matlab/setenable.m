@@ -21,7 +21,7 @@ if CALC == 0
    set(Hndl.record,            'Enable', 'on')
    set(Hndl.combi,             'Enable', 'on')
    set(Hndl.batch,             'Enable', 'on')
-   if figflag('Vocal fold parameters',1) == 1
+   if voxfigflag('Vocal fold parameters',1) == 1
       set(Hndl.MAXM,           'Enable', 'on')
       set(Hndl.MAXMstr,        'Enable', 'on')
    end
@@ -43,7 +43,7 @@ else
    set(Hndl.record,            'Enable', 'off')
    set(Hndl.combi,             'Enable', 'off')
    set(Hndl.batch,             'Enable', 'off')
-   if figflag('Vocal fold parameters',1) == 1
+   if voxfigflag('Vocal fold parameters',1) == 1
       set(Hndl.MAXM,           'Enable', 'off')
       set(Hndl.MAXMstr,        'Enable', 'off')
    end

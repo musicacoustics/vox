@@ -74,7 +74,7 @@ end
 
 
 sizevortices = size(vortices,2);
-if GRON & (figflag('Vortex generation',1) == 1) & (sizevortices>0)
+if GRON & (voxfigflag('Vortex generation',1) == 1) & (sizevortices>0)
    set(0,'CurrentFigure',Hndl.noisefig)
    set(Hndl.noisefig,'CurrentAxes',Hndl.noisefigplot)
    cla;
@@ -146,7 +146,7 @@ for vortex = 1:sizevortices   % vortex counter
    anglefactor = 0.5*diameter	/(position - focuspoint);
 
    if GRON
-      if figflag('Vortex generation',1) == 1
+      if voxfigflag('Vortex generation',1) == 1
          set(0,'CurrentFigure',Hndl.noisefig)
          set(Hndl.noisefig,'CurrentAxes',Hndl.noisefigplot)
          if velocity == 0

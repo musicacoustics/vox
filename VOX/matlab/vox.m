@@ -618,7 +618,7 @@ switch action
             data = get(Hndl.figureNumber, 'UserData');
             vowel = get(Hndl.VOWEL,'value');
 
-            if figflag('Design of VT area function',1) ==  0
+            if voxfigflag('Design of VT area function',1) ==  0
                 Scrsize   = get(0,'Screensize');
                 Scrwidth  = Scrsize(3);
                 Scrheight = Scrsize(4);
@@ -978,7 +978,7 @@ switch action
             set(Hndl.ctrl,       'Enable', 'off')
             set(Hndl.FE,         'Enable', 'off')
             set(Hndl.combiload,  'Enable', 'off')
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
@@ -989,7 +989,7 @@ switch action
             set(Hndl.ctrl,        'Enable', 'off')
             set(Hndl.FE,          'Enable', 'off')
             set(Hndl.combiload,   'Enable', 'off')
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
@@ -1004,7 +1004,7 @@ switch action
             set(Hndl.ctrl,        'Enable', 'off')
             set(Hndl.FE,          'Enable', 'off')
             set(Hndl.combiload,   'Enable', 'off')
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
@@ -1026,7 +1026,7 @@ switch action
             set(Hndl.FE,          'Enable', 'on')
             set(Hndl.combiload,   'Enable', 'on')
 
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes','import');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
@@ -1035,7 +1035,7 @@ switch action
             set(Hndl.TractCalc,   'Enable', 'off')
             set(Hndl.combi,       'Enable', 'off')
             set(Hndl.ctrl,        'Enable', 'off')
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
@@ -1566,7 +1566,7 @@ switch action
         end
 
         % refresh Controlfile window
-        if figflag('controlfile',1) ==  1   %
+        if voxfigflag('controlfile',1) ==  1   %
            % data = get(Hndl.figureNumber, 'UserData');
             try
                 controlfile('refresh');
@@ -1828,7 +1828,7 @@ switch action
         if get(Hndl.gron, 'value') ==  1;
             GRON = 1;
             if ~CALC
-                if figflag('Sound pressure during calculation',1) ==  1   %
+                if voxfigflag('Sound pressure during calculation',1) ==  1   %
                     set(0,'CurrentFigure',Hndl.infofigure)
                 else   % initialize output
                     Scrsize   = get(0,'Screensize');

@@ -8,7 +8,7 @@ xmin = -3;
 zmax =  4;
 zmin = -2;
 NoColIndx = 1; %last Timestep without Collision
-if (figflag('Deflection of masses',1) == 1)&(size(Hndl.plotmassrec11,2) == MAXM)
+if (voxfigflag('Deflection of masses',1) == 1)&(size(Hndl.plotmassrec11,2) == MAXM)
     set(0,'CurrentFigure',Hndl.plotmassfig)
     plotedit(Hndl.plotmassfig,'off');
     plotedit(Hndl.plotmassfig,'hidetoolsmenu');

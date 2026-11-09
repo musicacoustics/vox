@@ -163,7 +163,7 @@ for n = 1 : 1 : num_it
         %=====================================================
         % Graphic output of intermediate signals
         if GRON
-            [isfig,figh]=figflag('Sound pressure during calculation',1);
+            [isfig,figh]=voxfigflag('Sound pressure during calculation',1);
             if (isfig == 1)	% figure exists
                 set(0,'CurrentFigure', figh)
             end
@@ -459,7 +459,7 @@ end
 
 % save area function for later, when external forces is active
     guiname = 'external_forces_gui';        % name of gui
-    [isda]  = figflag(guiname, 1);
+    [isda]  = voxfigflag(guiname, 1);
     if isda
        Hndl.efgui     = openfig(guiname, 'reuse');
        handles        = guihandles(Hndl.efgui);

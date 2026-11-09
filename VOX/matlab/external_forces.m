@@ -8,7 +8,7 @@ calledFromGui      = ~exist('sum_amin', 'var');
 radio              = get(Hndl.extforce, 'Value');  % is radio button on main vox gui on?
 guiname            = 'external_forces_gui';        % name of this gui
 % find out if gui is open
-[isda] = figflag(guiname, 1);
+[isda] = voxfigflag(guiname, 1);
 
 % gui stuff
 if radio == 1 && isda == 0
