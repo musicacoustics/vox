@@ -1884,22 +1884,22 @@ switch action
                 surf(figdata.vibro', 'linestyle', 'none');
                 axis([1 length(figdata.vibro) 1 size(figdata.vibro,2)])
                 %Calculations for Colormap
+                cMap=zeros(100,3);   % n x 3 in both cases (was 100 x 1 without negative values)
                 if min(min(figdata.vibro)) < 0 %negative values exist
-                    cMap=zeros(100,3);
                     per=(max(max(figdata.vibro))+abs(min(min(figdata.vibro))))/100;
                     upper=round(max(max(figdata.vibro))/per);
-                    lower=round(abs(min(min(figdata.vibro))/per));
+                    lower=max(round(abs(min(min(figdata.vibro))/per)), 1);   % index, at least 1
                     cMap(lower:lower+upper,1) = linspace(0,1,upper+1);
-                    cMap(1:lower,3) = linspace(lower/30,0,lower);
+                    cMap(1:lower,3) = linspace(min(lower/30,1),0,lower);       % colormap values <= 1
                 else  %no negative values
                     cMap(1:100,1) = linspace(0,1,100);
                 end
                 colormap(cMap);
                 colorbar;
                 view(0, -90);
-            catch
+            catch err
                 close Phonovibrogramm;
-                display('No vibrogramm data present (old file format)');
+                disp(['No vibrogram shown: ' err.message]);
             end
 
         end
