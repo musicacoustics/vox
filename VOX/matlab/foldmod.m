@@ -13,7 +13,7 @@ switch action
     %================================================================
     % initialize
     case 'initialize'
-        if figflag('Vocal fold parameters',1) == 1
+        if voxfigflag('Vocal fold parameters',1) == 1
             set(0,'CurrentFigure',Hndl.ModFoldFig)
             clf;
         else	% create figure

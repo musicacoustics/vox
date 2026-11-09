@@ -135,14 +135,14 @@ pmr2.junction(1).time(1)=dirac;
 
 % start of calculus loop
 
-Hndl.voctractwaitbar = waitbar(0,'Calculating impulse response...');
+Hndl.voctractwaitbar = voxwaitbar(0,'Calculating impulse response...');
 
 BRK = 0;
 
 for z=1:loop
 
 %   waitbar(z/loop,Hndl.voctractwaitbar)
-    waitbar(z/loop)
+    voxwaitbar(z/loop)
 
    if BRK, break,        end
 
@@ -175,7 +175,7 @@ for z=1:loop
    end
 
    if GRONT
-      if figflag('Wave propagation in the vocal tract',1) == 1
+      if voxfigflag('Wave propagation in the vocal tract',1) == 1
          set(0,'CurrentFigure',Hndl.voctractfig)
          set(Hndl.voctractfig,'CurrentAxes',Hndl.voctractfigplot)
          waterfall(t(1:z), 1:lastj, h_calc_all);

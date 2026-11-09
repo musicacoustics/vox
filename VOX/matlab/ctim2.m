@@ -39,7 +39,7 @@ if nargin < 2
 end;
 
 if ii < 2	% initialization of tubes etc.
-   Hndl.waitfigure = waitbar(0,'Calculating tract signal...');
+   Hndl.waitfigure = voxwaitbar(0,'Calculating tract signal...');
    t = [0:ntmax-1]/Fs*1000;	% time beam for graphic display
    if nargin == 0	% for test
       lcyl	= [0.05,   0.05];	% test
@@ -85,7 +85,7 @@ for n = 1:ntmax
    if BRK, break, end  % makes it possible to end calculation
    if ii == 0	% stand alone calculation
 %      Hndl.waitfigure=waitbar(n/ntmax,Hndl.waitfigure);
-      Hndl.waitfigure=waitbar(n/ntmax);
+      Hndl.waitfigure=voxwaitbar(n/ntmax);
       inputflow = zeros(ntmax,1);
       inputflow(1) = diracamp/(rho*c);;
       %	  disp('preparation...');
@@ -121,7 +121,7 @@ for n = 1:ntmax
    y_out_all(:,n) = PARCTIM.output_plus(1:ndis,1) + PARCTIM.input_minus(:);
 
    if ((GRONT == 1) | (GRONT == 3))  & (ii == 0)	% waterfall if graphics on and standalone calc.
-      if figflag('Wave propagation in the vocal tract',1) == 1
+      if voxfigflag('Wave propagation in the vocal tract',1) == 1
          set(0,'CurrentFigure',Hndl.voctractfig)
          set(Hndl.voctractfig,'CurrentAxes',Hndl.voctractfigplot)
          waterfall(t(1:n), 1:ndis, y_out_all);
@@ -146,7 +146,7 @@ for n = 1:ntmax
             dudu1(segment)+dudu2(segment);
       end
       mdudu=max(max(abs([dudu1;dudu2;p_out_mouth(1:ndis)])));
-      if figflag('Sound pressure in the vocal tract',1) == 1
+      if voxfigflag('Sound pressure in the vocal tract',1) == 1
          plot(1:ndis, [dudu1], 'r-', ...
             1:ndis, [dudu2],    		'b-', ...
             1:ndis, p_out_mouth,		'k-', ...

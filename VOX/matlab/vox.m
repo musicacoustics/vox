@@ -144,7 +144,7 @@ switch action
                 filename = get(handles.ed_filename,'String');
                 parapath = get(handles.ed_filepath,'String');
 
-                if findstr(filename,'FE') > 0  & filename ~=  0
+                if ischar(filename) && contains(filename,'FE')
                     parapath = pwd;
                     load([parapath,'\samplepara.mat']);
                 else
@@ -397,7 +397,7 @@ switch action
                 set(Hndl.surfs,       'Enable', 'on')
                 %figdata.OldData = 0;
             catch
-                display('No figure data in file');
+                disp('No figure data in file');
                 try
                     close figure 60;
                 end
@@ -618,7 +618,7 @@ switch action
             data = get(Hndl.figureNumber, 'UserData');
             vowel = get(Hndl.VOWEL,'value');
 
-            if figflag('Design of VT area function',1) ==  0
+            if voxfigflag('Design of VT area function',1) ==  0
                 Scrsize   = get(0,'Screensize');
                 Scrwidth  = Scrsize(3);
                 Scrheight = Scrsize(4);
@@ -978,7 +978,7 @@ switch action
             set(Hndl.ctrl,       'Enable', 'off')
             set(Hndl.FE,         'Enable', 'off')
             set(Hndl.combiload,  'Enable', 'off')
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
@@ -989,7 +989,7 @@ switch action
             set(Hndl.ctrl,        'Enable', 'off')
             set(Hndl.FE,          'Enable', 'off')
             set(Hndl.combiload,   'Enable', 'off')
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
@@ -1004,7 +1004,7 @@ switch action
             set(Hndl.ctrl,        'Enable', 'off')
             set(Hndl.FE,          'Enable', 'off')
             set(Hndl.combiload,   'Enable', 'off')
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
@@ -1026,7 +1026,7 @@ switch action
             set(Hndl.FE,          'Enable', 'on')
             set(Hndl.combiload,   'Enable', 'on')
 
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes','import');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
@@ -1035,16 +1035,16 @@ switch action
             set(Hndl.TractCalc,   'Enable', 'off')
             set(Hndl.combi,       'Enable', 'off')
             set(Hndl.ctrl,        'Enable', 'off')
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
         end;
 
         % check for FE mode
-        if findstr(filename,'FE') > 0 & filename ~=  0
+        if ischar(filename) && contains(filename,'FE')
             PARA = 1;
-        elseif findstr(filename,'out_cF') > 0 & filename ~=  0
+        elseif ischar(filename) && contains(filename,'out_cF')
             PARA = 1;
         else
             PARA = 0;
@@ -1160,14 +1160,14 @@ switch action
                 COF = 0;
             end; % of try - catch
         elseif PARA
-            if findstr(filename,'out_cF') > 0 & filename ~=  0
+            if ischar(filename) && contains(filename,'out_cF')
                 file = filename;
             elseif get(Hndl.FE, 'value') ==  1;
                 file = SD_NAMES(value,:);
                 file(14) = '_';
                 file(15:17) = filename(3:5);
                 file(file ==  ' ') = []; % get rid of extra blanks in filename
-            elseif findstr(filename,'FE') > 0 & filename ~=  0
+            elseif ischar(filename) && contains(filename,'FE')
                 file = filename;
             end;
             try
@@ -1566,7 +1566,7 @@ switch action
         end
 
         % refresh Controlfile window
-        if figflag('controlfile',1) ==  1   %
+        if voxfigflag('controlfile',1) ==  1   %
            % data = get(Hndl.figureNumber, 'UserData');
             try
                 controlfile('refresh');
@@ -1625,7 +1625,7 @@ switch action
             filevalue   = get(Hndl.PARAM,'Value');
             name        = char(outfilename(filevalue));
             COF = 1;
-            if findstr(name,'FE') > 0 & name ~=  0
+            if ischar(name) && contains(name,'FE')
                 filename = name;
                 PARA     = 1;
                 count    = 1;
@@ -1748,7 +1748,7 @@ switch action
                 fnnn        = outfilename(filevalue);
                 filename    = char(fnnn);
             else
-                display('no FE files found.');
+                disp('no FE files found.');
             end
         else
             FEswitch = 0;
@@ -1828,7 +1828,7 @@ switch action
         if get(Hndl.gron, 'value') ==  1;
             GRON = 1;
             if ~CALC
-                if figflag('Sound pressure during calculation',1) ==  1   %
+                if voxfigflag('Sound pressure during calculation',1) ==  1   %
                     set(0,'CurrentFigure',Hndl.infofigure)
                 else   % initialize output
                     Scrsize   = get(0,'Screensize');
@@ -1906,7 +1906,7 @@ switch action
                displaycontforc;
                displayimpuls;
            catch
-               display('No figure data present (old file format)');
+               disp('No figure data present (old file format)');
                set(Hndl.surfs,       'Enable', 'off')
            end
        end
@@ -1996,7 +1996,7 @@ switch action
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
         % Info callback.
     case 'info'
-        helpwin('vox')
+        doc('vox')   % helpwin is obsolete
         % END of Info callback section
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
@@ -2075,6 +2075,6 @@ switch action
     case 'closevox'
         close all;
     otherwise
-        display('couldnt find some for this action:');action
+        disp('couldnt find some for this action:');action
 
 end;    % switch action case...

@@ -90,7 +90,7 @@ switch callback
       set(handles.ed_filename,'String',filename);
       set(handles.ed_filepath,'String',parapath);
       
-      if findstr(filename,'FE') > 0 & filename ~= 0
+      if ischar(filename) && contains(filename,'FE')
          %       [time,w0lp(1),w0lp(2),w0lp(3)] = textread(filename,'%f %f %f %f',1,'k','whitespace','\r');
          %       [time,w0rp(1),w0rp(2),w0rp(3)] = textread(filename,'%f %f %f %f',1,'whitespace','\r');
          %       [time,wmaxla(1),wmaxla(2),wmaxla(3)] = textread(filename,'%f %f %f %f',1,'whitespace','\r');
@@ -208,7 +208,7 @@ switch callback
       filename = get(handles.ed_filename,'String');
       clear datas;
 
-      if findstr(filename,'FE') > 0 & filename ~= 0
+      if ischar(filename) && contains(filename,'FE')
          load([parapath,'\samplepara.mat']);
       else
          load([parapath,filename]);

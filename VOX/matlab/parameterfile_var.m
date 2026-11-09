@@ -22,7 +22,7 @@ iniinput  = datas.iniinput;      % 4 = combicalc
 % values
 TVAKT     = datas.TVAKT;     % activ stress
 PTG       = datas.PTG;       % lounge pressure
-if findstr(filename,'FE') > 0  | findstr(filename,'ip') > 0
+if ischar(filename) && (contains(filename,'FE') || contains(filename,'ip'))
    fid = fopen(filename,'r');
    a = fscanf(fid,'%f',[13 inf]);
    fclose(fid);
@@ -34,7 +34,7 @@ end;
 Fs        = datas.Fs;
 
 % suffix of outfile
-if findstr(filename,'FE') > 0 & filename ~= 0
+if ischar(filename) && contains(filename,'FE')
    suffix = ['fem',num2str(num)];
 else
    suffix = ['para',num2str(num)];
@@ -69,7 +69,7 @@ Infold.register     = datas.Infold.register;		% 1: Modal, 2: Head, 3: Falsett
 Infold.flags.ALONE  = datas.Infold.flags.ALONE;   % 1: standalone execution of loop
 Infold.calctime 	= datas.TMAX/1000;
 
-if findstr(filename,'FE') > 0 & filename ~= 0
+if ischar(filename) && contains(filename,'FE')
 
    % [time,Infold.w0lp(1),Infold.w0lp(2),Infold.w0lp(3)...
    %      ,Infold.w0rp(1),Infold.w0rp(2),Infold.w0rp(3)...

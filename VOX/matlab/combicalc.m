@@ -24,21 +24,21 @@ Infold.combicalc = 1;
 
 % FE mode init
 if isfe
-    if findstr(filename,'FE') > 0 & filename ~=  0
+    if ischar(filename) && contains(filename,'FE')
         PARAMANZ = 14;
         fnam = filename;
         fid  = fopen(filename);
         if fid == -1
             [errmsg, errnum] = ferror(fid);
             if errnum ~= 0
-                display(['1: ' errmsg]);
+                disp(['1: ' errmsg]);
             end
         else
             fid  = fopen(fnam);
             if fid>0
                 [errmsg, errnum] = ferror(fid);
                 if errnum ~= 0
-                    display(['2: ' errmsg]);
+                    disp(['2: ' errmsg]);
                 else
                     % dont know why i did this (basti)
                    % display([filename ' not found. so use: ' fnam]);
@@ -48,14 +48,14 @@ if isfe
             end
         end
         if errnum == 0
-            display(['using ' fnam ' as FE input file'])
+            disp(['using ' fnam ' as FE input file'])
             a    = fscanf(fid,'%f',[PARAMANZ inf]);
             fclose(fid);
             b    = a';
             time = max(b(:,1));
             TMAX = time;
         else
-            display('FE input file not found');
+            disp('FE input file not found');
             isfe = 0;
         end
     else
@@ -127,7 +127,7 @@ if n_samples > 0
                 end
                 if t(ii) >=  time
                     ik  = ik + 1;
-                    display(['use fe step: ' sprintf('%4d', ik)]);
+                    disp(['use fe step: ' sprintf('%4d', ik)]);
                 end;              
             end;
         end;
@@ -224,7 +224,7 @@ if n_samples > 0
                 Hndl.foldmovfig = fullfile(WORKDIR, 'out', ['combimov_' movnum '.fig']);
             end
 
-            Hndl.mainwaitfigure = waitbar(0, 'Calculating combined fold/tract signal...');
+            Hndl.mainwaitfigure = voxwaitbar(0, 'Calculating combined fold/tract signal...');
 
             % why is this:
             BRK      = 0;
@@ -233,11 +233,11 @@ if n_samples > 0
         end   % of if combicalc init
 
 %        Hndl.mainwaitfigure = waitbar(ii/n_samples, Hndl.mainwaitfigure);
-        Hndl.mainwaitfigure = waitbar(ii/n_samples);
+        Hndl.mainwaitfigure = voxwaitbar(ii/n_samples);
 
         % makes it possible to end calculation
         if BRK
-            display('combibreak');
+            disp('combibreak');
             break
         end
         Infold.k = ii;      % parameter for foldsig
@@ -392,7 +392,7 @@ if n_samples > 0
                     out_vf_voc, PARNOISE);
                 y_out_all(:,ii) = PARCTIM.output_plus(1:sizetubes,1) + PARCTIM.input_minus(:);
                 if (GRONT ==  1) | (GRONT ==  4)
-                    if figflag('Wave propagation in the vocal tract',1) ==  1
+                    if voxfigflag('Wave propagation in the vocal tract',1) ==  1
                         set(0,'CurrentFigure',Hndl.voctractfig)
                         set(Hndl.voctractfig,'CurrentAxes',Hndl.voctractfigplot)
                         waterfall(t(1:ii), 1:sizetubes, y_out_all);
@@ -442,7 +442,7 @@ if n_samples > 0
             Vektor1 = [minareamm; rvocmm; out_y; glotnoise_vek; sum_uccm];
             Vektor2 = [out_vf_voc_vek; out_vf_trach_vek; pin_gl_ac_vek; ys0];
             Vector3 = Infold.w0lp(1);
-            if (figflag('Sound pressure during calculation',1) ==  1)&(ii>1)   %
+            if (voxfigflag('Sound pressure during calculation',1) ==  1)&(ii>1)   %
                 set(0,'CurrentFigure',Hndl.infofigure)
                 yaxe = Hndl.infofig.yaxe;
                 sig1 = Hndl.infofig.sig1;
@@ -466,7 +466,7 @@ if n_samples > 0
 %                 end
                 %label('p_{sup} (r), p_{sub} (g), p_{s0} (b) [Pa], A_{glot} [mm^2] (m)');
             else   % initialize output
-                if (figflag('Sound pressure during calculation',1) ==  1)
+                if (voxfigflag('Sound pressure during calculation',1) ==  1)
                     close(Hndl.infofigure);
                 end
                 Scrsize   = get(0,'Screensize');
@@ -503,7 +503,7 @@ if n_samples > 0
         end; % of GRONs
     end; % end combicalc main loop
 
-    display('loop end');
+    disp('loop end');
     
     if ishghandle(Hndl.mainwaitfigure)   % vox('break') may have closed it already
         close(Hndl.mainwaitfigure)
@@ -531,7 +531,7 @@ if n_samples > 0
     
     % save area function for later, when external forces is active
     guiname = 'external_forces_gui';        % name of gui
-    [isda]  = figflag(guiname, 1);
+    [isda]  = voxfigflag(guiname, 1);
     if isda
        Hndl.efgui     = openfig(guiname, 'reuse');
        handles        = guihandles(Hndl.efgui);
@@ -541,7 +541,7 @@ if n_samples > 0
        if ef_force>0 && ef_duration>0
            areafilename   = ['externalforce_glottalarea_' sprintf('%g', ef_force*100) 'mN_'  sprintf('%g', ef_duration) 'percent.csv'];
            csvwrite(areafilename, Infold.completeareafunction);
-           display(['wrote area function into file: ' areafilename]);
+           disp(['wrote area function into file: ' areafilename]);
        end
     end
     
@@ -566,7 +566,7 @@ if n_samples > 0
             %         end;
             %         data.suffix = suffix;
             %       combi_filename = [combi_filename data.suffix];
-            if findstr(filename,'FE') > 0 & filename ~=  0
+            if ischar(filename) && contains(filename,'FE')
                 combi_filename(5) = 'c';
                 combi_filename(6) = 'F';
                 combi_filename(14) = '_';
@@ -584,7 +584,7 @@ if n_samples > 0
         vox('input');
     end;
 else
-    display('there was a bug with samples calculation.');
+    disp('there was a bug with samples calculation.');
 end
 CALC = 0;
 setenable(CALC)

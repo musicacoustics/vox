@@ -32,7 +32,7 @@ ALONE = Infold.flags.ALONE;
 
 % create waitbar ------------------------------------------------------
 if ALONE
-    h1 = waitbar(0, 'Generating vocal fold signal...');
+    h1 = voxwaitbar(0, 'Generating vocal fold signal...');
 end
 
 % initialisation ------------------------------------------------------
@@ -86,7 +86,7 @@ for n = 1 : 1 : num_it
 
     % dont know who breaks here....
     if BRK == 1
-        display('stopping');
+        disp('stopping');
         break
     end
 
@@ -103,7 +103,7 @@ for n = 1 : 1 : num_it
     glotpar;
 
     % calculate flow and resulting pressures -------------------
-    flow;
+    voxflow;   % renamed from flow.m (shadowed the MATLAB function flow)
     press;
 
     % calculate forces on the masses ---------------------------
@@ -163,7 +163,7 @@ for n = 1 : 1 : num_it
         %=====================================================
         % Graphic output of intermediate signals
         if GRON
-            [isfig,figh]=figflag('Sound pressure during calculation',1);
+            [isfig,figh]=voxfigflag('Sound pressure during calculation',1);
             if (isfig == 1)	% figure exists
                 set(0,'CurrentFigure', figh)
             end
@@ -379,7 +379,7 @@ for n = 1 : 1 : num_it
     % waitbar step -----------------------------------------------------
     if ALONE
         try
-            waitbar(n/num_it)
+            voxwaitbar(n/num_it)
         end
     end
 end % of loop
@@ -459,7 +459,7 @@ end
 
 % save area function for later, when external forces is active
     guiname = 'external_forces_gui';        % name of gui
-    [isda]  = figflag(guiname, 1);
+    [isda]  = voxfigflag(guiname, 1);
     if isda
        Hndl.efgui     = openfig(guiname, 'reuse');
        handles        = guihandles(Hndl.efgui);
@@ -469,7 +469,7 @@ end
        if ef_force>0 && ef_duration>0
            areafilename   = ['externalforce_glottalarea_' sprintf('%g', ef_force*100) 'mN_'  sprintf('%g', ef_duration) 'percent.csv'];
            csvwrite(areafilename, Infold.completeareafunction);
-           display(['wrote area function into file: ' areafilename]);
+           disp(['wrote area function into file: ' areafilename]);
        end
     end
 
