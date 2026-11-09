@@ -718,11 +718,16 @@ Hndl.record=uicontrol( ...
     'TooltipString', 'Record signal via soundcard',...
     'String',' REC', ...
     'Callback','vox(''record'')');
-% use try-catch to hide the Record button if wavrecord is unavailable
+% hide the Record button if no audio input device is available
+% (was: exist('wavrecord'), which has been removed from MATLAB)
 set(Hndl.record,'Visible','off');
-if exist('wavrecord') % recording via Signal processing toolbox
-    set(Hndl.record,'Visible','on');
-end;
+try
+    if audiodevinfo(1) > 0   % number of audio input devices (audiorecorder)
+        set(Hndl.record,'Visible','on');
+    end
+catch err
+    warning('Could not query audio input devices, REC hidden: %s', err.message);
+end
 
 %=======================================================================
 % combi calculation title

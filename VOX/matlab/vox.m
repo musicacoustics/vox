@@ -1678,7 +1678,11 @@ switch action
         set(Hndl.figureNumber,'pointer','watch');
         try,
             N = ceil(get(Hndl.Duration, 'value')/1000*Fs);
-            y = wavrecord(N, Fs, 1, 'double');
+            % wavrecord(N, Fs, 1, 'double') has been removed: record mono, 16 bit
+            rec = audiorecorder(Fs, 16, 1);
+            recordblocking(rec, N/Fs);
+            y = getaudiodata(rec, 'double');
+            y = [y(1:min(N, end)); zeros(N - min(N, numel(y)), 1)];   % exactly N samples, as before
             y = y';
             t = (0:length(y)-1)/Fs;
             data.y = y;
@@ -1693,7 +1697,8 @@ switch action
             %        'Fs = ', num2str(data.Fs) 'Hz']);
             set(Hndl.INPUT, 'value', 9);
             vox('input');
-        catch
+        catch err
+            warning('Recording failed: %s', err.message);   % was silently ignored
         end
         set(Hndl.figureNumber,'pointer','arrow');
         % END of Record callback section
