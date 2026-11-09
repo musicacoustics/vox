@@ -761,11 +761,9 @@ switch action
       %==========================================================================
       % Import Callback
    case 'import'
-      oldpath = pwd;
-      cd('c:\bcd');
+      % no fixed start folder (was cd('c:\bcd'), which exists on no current machine)
       [filename, filepath] = uigetfile('*.ror',['choose an area-data-file?']);
-      cd(oldpath);
-      if filename ~= 0
+      if ischar(filename)
          BATCH = 1;
          set(Hndl.batch,'Value',1);
          set(Hndl.batch,'enable','off');
