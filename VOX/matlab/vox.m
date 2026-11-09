@@ -1371,9 +1371,8 @@ switch action
                 end;
                 if isfield(S,'data')
                     data = S.data;
-                else
-                    data.Fs = S.Fs;
-                    data.y  = S.y(:)';
+                else   % old format: only the signal (not the GUI data with an old z)
+                    data = struct('Fs', S.Fs, 'y', S.y(:)');
                 end;
                 data.pathname = pathname;
                 data.filename = filename;
@@ -1389,6 +1388,7 @@ switch action
             [filename, pathname] = uigetfile('*.wav', 'choose input file');
             if filename ~=  0
                 %      LASTPATH = data.pathname;
+                data = struct();   % only the signal goes to last_filename, not the GUI data
                 [data.y, data.Fs] = audioread(fullfile(pathname, filename));   % wavread has been removed
                 numch = size(data.y,2);
                 if numch > 1
@@ -1424,6 +1424,7 @@ switch action
             if isempty(startdir) || ~isfolder(startdir)
                 startdir = WORKDIR;
             end
+            data = struct();   % only the signal goes to last_filename, not the GUI data
             [data.filename, data.pathname] = uigetfile(fullfile(startdir, '*.dat'), 'choose input file');
             if ischar(data.filename)
                 LASTPATH = data.pathname;
@@ -1458,7 +1459,14 @@ switch action
 
             if isfile(fullfile(WORKDIR, 'last_filename.mat'))
                 L = load(fullfile(WORKDIR, 'last_filename.mat'), 'data');
-                data = L.data;
+                % replace only the signal: the model data (radius, properties,
+                % ...) must stay for Tract Calc; drop the impedance of the
+                % previous tract result
+                data = get(Hndl.figureNumber,'UserData');
+                if isfield(data, 'z'), data = rmfield(data, 'z'); end
+                for fn = fieldnames(L.data)'
+                    data.(fn{1}) = L.data.(fn{1});
+                end
                 data.t = (0:length(data.y)-1)/data.Fs;
                 set(Hndl.figureNumber,'UserData',data);
                 n = SD_DISP;
@@ -1479,7 +1487,12 @@ switch action
         if value ==  9   % load last recorded signal
             if isfile(fullfile(WORKDIR, 'recorded.mat'))
                 L = load(fullfile(WORKDIR, 'recorded.mat'), 'data');
-                data = L.data;
+                % replace only the signal, keep the model data (see LastFile)
+                data = get(Hndl.figureNumber,'UserData');
+                if isfield(data, 'z'), data = rmfield(data, 'z'); end
+                for fn = fieldnames(L.data)'
+                    data.(fn{1}) = L.data.(fn{1});
+                end
                 set(Hndl.figureNumber,'UserData',data);
                 n = SD_DISP;
                 eval([SD_PLOTCMD(n,:)]);
