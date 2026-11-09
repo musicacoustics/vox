@@ -465,7 +465,7 @@ switch action
       %area = findobj('Tag','area');
       length_fii = size(data.radius,1);
       YData = get(linehandle,'YData');
-      Area = pi*(Currentradius^2);
+      Area = pi*(CurrentRadius^2);
 
       data.radius = data.radius*1000;
       data.spacing = data.spacing*1000;
@@ -708,13 +708,14 @@ switch action
                set(line_handle,'HitTest','off');
                X1 = X2;
             end;
-            legend(line_handle,'last',2);
+            legend(line_handle,'last','Location','northwest');   % numeric location 2 is an error now
             set(Hndl.figureNumber, 'UserData',data);
          end;
       end;  % of Mode callback
       YData = get(linehandle,'YData');
+      XData = get(linehandle,'XData');   % xb is not computed in File mode
       set(Hndl.TractMod.areafunc, 'YLim', [0 max(YData)+1]);
-      set(Hndl.TractMod.areafunc, 'XLim', [0 max(xb)]);
+      set(Hndl.TractMod.areafunc, 'XLim', [0 max(XData)]);
       if Mode ~= 4
          set(get(Hndl.TractMod.areafunc, 'Title'),'String', TitleStr);
       end

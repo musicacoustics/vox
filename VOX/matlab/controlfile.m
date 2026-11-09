@@ -12,6 +12,9 @@ end;
 controlfig      = openfig('control_file_gui','reuse');
 Hndl.controlfig = controlfig;
 handles         = guihandles(controlfig);
+% unused GUIDE leftover "Edit Text": its callback calls control_file_gui.m,
+% which does not exist, so any input there raised an error
+set(handles.edit1, 'Callback', '', 'Visible', 'off');
 weg = 0;
 
 

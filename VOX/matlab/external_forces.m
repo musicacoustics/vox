@@ -1,6 +1,10 @@
 % main call for external force integration
 % global Infold Hndl
 
+% vox('extforce') runs this script only to open or close the window; the
+% force computation below needs the glottal area (sum_amin) of a running
+% fold calculation (siggi)
+calledFromGui      = ~exist('sum_amin', 'var');
 radio              = get(Hndl.extforce, 'Value');  % is radio button on main vox gui on?
 guiname            = 'external_forces_gui';        % name of this gui
 % find out if gui is open
@@ -47,6 +51,10 @@ else
     try
         handles = guihandles(Hndl.efgui);
     end
+end
+
+if calledFromGui
+    return   % window opened or closed; no calculation running
 end
 
 

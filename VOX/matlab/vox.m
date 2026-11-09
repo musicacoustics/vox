@@ -495,7 +495,7 @@ switch action
                 cd (pathName);
                 avifiles   = dir('pathName');
                 fanz       = size(avifiles, 1)+1;
-                datetime   = sprintf('%03d', fanz);
+                movnum     = sprintf('%03d', fanz);   % was named datetime, which hid the datetime function in vox
                 %movfilenam = ['out/foldmov_' datetime '.avi'];
                 movfilename = fileName;
                 % make movie file
@@ -512,7 +512,7 @@ switch action
                 catch
                      display('could not init avifile');
                 end
-                Hndl.foldmovfig = ['foldmov_' datetime '.fig'];
+                Hndl.foldmovfig = ['foldmov_' movnum '.fig'];
             %end
         end
 
@@ -668,7 +668,9 @@ switch action
                     modechar = 'fg';
                 end;
             end;
-            close(Hndl.ModTractFig);
+            if isfield(Hndl, 'ModTractFig') && ishghandle(Hndl.ModTractFig)   % window may have been closed by the user
+                close(Hndl.ModTractFig);
+            end
         end;
         if ~CALC
             vox('input');
@@ -700,6 +702,10 @@ switch action
                 areas3('refresh');
             end;
             set(Hndl.TractDispMode,'String',char('FRF','Imp-m','Imp-g'));
+            % 3 entries here, 4 in File mode: keep the selected display valid
+            if TRACTDISP ==  2, TRACTDISP = 1; end   % FRF-glottis exists only in File mode
+            dispentry = [1 1 2 3];                    % TRACTDISP -> entry
+            set(Hndl.TractDispMode,'Value',dispentry(TRACTDISP));
         elseif get(Hndl.TractCalcMode,'value') ==  2 % Tube segments
             data.properties.mode = 2;
             if get(Hndl.ModTract,'value') ==  1       % modified vowel
@@ -714,9 +720,16 @@ switch action
                 areas3('refresh');
             end;
             set(Hndl.TractDispMode,'String',char('FRF  ','Imp-m','Imp-g'));
+            % 3 entries here, 4 in File mode: keep the selected display valid
+            if TRACTDISP ==  2, TRACTDISP = 1; end   % FRF-glottis exists only in File mode
+            dispentry = [1 1 2 3];                    % TRACTDISP -> entry
+            set(Hndl.TractDispMode,'Value',dispentry(TRACTDISP));
 
         elseif get(Hndl.TractCalcMode,'value') ==  3 % File
             data.properties.mode = 3;
+            % 4 entries in File mode, entry = TRACTDISP (set before reading the value)
+            set(Hndl.TractDispMode,'String',char('FRF-m','FRF-g','Imp-m','Imp-g'), ...
+                'Value',TRACTDISP);
             if get(Hndl.TractDispMode,'value') ==  1   % FRF-mouth
                 SD_NAMES(2,1:6) = 'out_fm';
             elseif get(Hndl.TractDispMode,'value') ==  2   % FRF-glottis
@@ -727,7 +740,6 @@ switch action
             elseif get(Hndl.TractDispMode,'value') ==  4   % Imp-glottis
                 SD_NAMES(2,1:6) = 'outzfg';
             end;
-            set(Hndl.TractDispMode,'String',char('FRF-m','FRF-g','Imp-m','Imp-g'));
         elseif get(Hndl.TractCalcMode,'value') ==  4 % import
             data.properties.mode = 4;
             SD_NAMES(2,1:6) = 'out_im';
@@ -831,10 +843,11 @@ switch action
         %  value = 2;
         %  data = get(Hndl.figureNumber, 'UserData');
         %  set(Hndl.VOWEL, 'Value', 12);
+        stamp = char(datetime('now', 'Format', 'yyyyMMdd_HHmmss'));   % datetime is a function, not text
         if get(Hndl.TractCalcMode,'value') ==  1   % Stair segments
-            initfile = ['out_st' datetime '.mat'];
+            initfile = ['out_st' stamp '.mat'];
         else
-            initfile = ['out_tt' datetime '.mat'];
+            initfile = ['out_tt' stamp '.mat'];
         end;
         [filename, pathname] = uiputfile(initfile, 'choose output tract file');
         if filename ~=  0
@@ -1446,20 +1459,44 @@ switch action
 
         if value ==  8   % load last filename
 
-            load('last_filename')
-            data.t = (0:length(data.y)-1)/data.Fs;
-            set(Hndl.figureNumber,'UserData',data);
-            n = SD_DISP;
-            eval([SD_PLOTCMD(n,:)]);
-            title(['"', strrep(data.filename, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
+            if isfile(fullfile(WORKDIR, 'last_filename.mat'))
+                L = load(fullfile(WORKDIR, 'last_filename.mat'), 'data');
+                data = L.data;
+                data.t = (0:length(data.y)-1)/data.Fs;
+                set(Hndl.figureNumber,'UserData',data);
+                n = SD_DISP;
+                eval([SD_PLOTCMD(n,:)]);
+                title(['"', strrep(data.filename, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
+            else   % nothing loaded yet: empty plot with a message, as for missing calc files
+                data = get(Hndl.figureNumber,'UserData');
+                data.y = [-1 1 0 -1 0 1 -1];
+                data.Fs = 1;
+                data.t = (0:length(data.y)-1)/data.Fs;
+                set(Hndl.figureNumber,'UserData',data);
+                n = SD_DISP;
+                eval([SD_PLOTCMD(n,:)]);
+                title('no file loaded yet - choose *.mat, *.wav or *.dat');
+            end
         end;
 
         if value ==  9   % load last recorded signal
-            load('recorded')
-            set(Hndl.figureNumber,'UserData',data);
-            n = SD_DISP;
-            eval([SD_PLOTCMD(n,:)]);
-            title(['"', strrep(data.filename, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
+            if isfile(fullfile(WORKDIR, 'recorded.mat'))
+                L = load(fullfile(WORKDIR, 'recorded.mat'), 'data');
+                data = L.data;
+                set(Hndl.figureNumber,'UserData',data);
+                n = SD_DISP;
+                eval([SD_PLOTCMD(n,:)]);
+                title(['"', strrep(data.filename, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
+            else   % nothing recorded yet
+                data = get(Hndl.figureNumber,'UserData');
+                data.y = [-1 1 0 -1 0 1 -1];
+                data.Fs = 1;
+                data.t = (0:length(data.y)-1)/data.Fs;
+                set(Hndl.figureNumber,'UserData',data);
+                n = SD_DISP;
+                eval([SD_PLOTCMD(n,:)]);
+                title('nothing recorded yet - press REC');
+            end
         end;
 
         Fs = get(Hndl.Fs, 'value');
@@ -1687,12 +1724,12 @@ switch action
             files       = dir;
             [reng, col] = size(files);
             ii = 1;
-            for r = 1:size(files)
+            for r = 1:numel(files)   % 1:size(files) is an error for a size vector
                 list(r,1) = {files(r).name};
                 list1(r,1:length(list{r})) = list{r};
                 if r >=  3
                     fnam = files(r).name;
-                    if fnam(1:2) ==  ['FE']
+                    if startsWith(fnam, 'FE')   % fnam(1:2) failed for names shorter than 2
                         list3(1, ii) = {fnam};
                         ii = ii + 1;
                         found = true;
@@ -1884,22 +1921,22 @@ switch action
                 surf(figdata.vibro', 'linestyle', 'none');
                 axis([1 length(figdata.vibro) 1 size(figdata.vibro,2)])
                 %Calculations for Colormap
+                cMap=zeros(100,3);   % n x 3 in both cases (was 100 x 1 without negative values)
                 if min(min(figdata.vibro)) < 0 %negative values exist
-                    cMap=zeros(100,3);
                     per=(max(max(figdata.vibro))+abs(min(min(figdata.vibro))))/100;
                     upper=round(max(max(figdata.vibro))/per);
-                    lower=round(abs(min(min(figdata.vibro))/per));
+                    lower=max(round(abs(min(min(figdata.vibro))/per)), 1);   % index, at least 1
                     cMap(lower:lower+upper,1) = linspace(0,1,upper+1);
-                    cMap(1:lower,3) = linspace(lower/30,0,lower);
+                    cMap(1:lower,3) = linspace(min(lower/30,1),0,lower);       % colormap values <= 1
                 else  %no negative values
                     cMap(1:100,1) = linspace(0,1,100);
                 end
                 colormap(cMap);
                 colorbar;
                 view(0, -90);
-            catch
+            catch err
                 close Phonovibrogramm;
-                display('No vibrogramm data present (old file format)');
+                disp(['No vibrogram shown: ' err.message]);
             end
 
         end

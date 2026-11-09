@@ -1,4 +1,7 @@
 % plot upper signal in db
+if ~isfield(data, 'z')   % signals without impedance (loaded *.mat, *.wav, ...): show y
+   data.z = data.y;
+end
 set(0,'CurrentFigure',Hndl.figureNumber)
 set(Hndl.mainaxes0,'vis','off');
 cla;
