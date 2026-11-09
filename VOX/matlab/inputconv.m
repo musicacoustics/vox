@@ -4,7 +4,7 @@ function [input_minus, flowinput, y_plus_aux, inputaux] ...
 % application of matrices at the discontinuity of the entry
 % convolucioentrada[cabalactual_] := Block[{}
 %flowinput 	 = rotateright(flowinput);
-flowinput 	 = bitshift(flowinput,-1);
+flowinput(2:end) = flowinput(1:end-1);   % shift by one sample (bitshift shifted the bits of the values)
 flowinput(1) = actualflow;
 maxdim = size(A(1).value,1);
 y_plus_aux(1,1:maxdim) ...
