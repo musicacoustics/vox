@@ -119,7 +119,7 @@ if Infold.k>3 && gotF0
 
     % for debugging
     ef_f0_Hz = Fs/ef_f0;
-    display(['fo[' sprintf('%3.0f', ef_pos+1)  ']: ' sprintf('%5.2f', ef_f0_Hz) ' : Hz  : ' sprintf('%g',Infold.k) ])
+    disp(['fo[' sprintf('%3.0f', ef_pos+1)  ']: ' sprintf('%5.2f', ef_f0_Hz) ' : Hz  : ' sprintf('%g',Infold.k) ])
     %hsuehsz    = [any_a, any_b, any_c];
     %iuienkds   = Infold.extForceF0inSamples;
 end
@@ -207,7 +207,7 @@ if radio == 1 && isda == 1
             end
             setStr = [setStr sprintf('%1.0f', Infold.extForceFac(MAXM))];
             set(handles.forcefactor, 'String', setStr);
-            display('number of masses was changed...bad boy');
+            disp('number of masses was changed...bad boy');
         end
     end
 end

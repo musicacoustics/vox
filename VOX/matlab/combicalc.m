@@ -31,14 +31,14 @@ if isfe
         if fid == -1
             [errmsg, errnum] = ferror(fid);
             if errnum ~= 0
-                display(['1: ' errmsg]);
+                disp(['1: ' errmsg]);
             end
         else
             fid  = fopen(fnam);
             if fid>0
                 [errmsg, errnum] = ferror(fid);
                 if errnum ~= 0
-                    display(['2: ' errmsg]);
+                    disp(['2: ' errmsg]);
                 else
                     % dont know why i did this (basti)
                    % display([filename ' not found. so use: ' fnam]);
@@ -48,14 +48,14 @@ if isfe
             end
         end
         if errnum == 0
-            display(['using ' fnam ' as FE input file'])
+            disp(['using ' fnam ' as FE input file'])
             a    = fscanf(fid,'%f',[PARAMANZ inf]);
             fclose(fid);
             b    = a';
             time = max(b(:,1));
             TMAX = time;
         else
-            display('FE input file not found');
+            disp('FE input file not found');
             isfe = 0;
         end
     else
@@ -127,7 +127,7 @@ if n_samples > 0
                 end
                 if t(ii) >=  time
                     ik  = ik + 1;
-                    display(['use fe step: ' sprintf('%4d', ik)]);
+                    disp(['use fe step: ' sprintf('%4d', ik)]);
                 end;              
             end;
         end;
@@ -237,7 +237,7 @@ if n_samples > 0
 
         % makes it possible to end calculation
         if BRK
-            display('combibreak');
+            disp('combibreak');
             break
         end
         Infold.k = ii;      % parameter for foldsig
@@ -503,7 +503,7 @@ if n_samples > 0
         end; % of GRONs
     end; % end combicalc main loop
 
-    display('loop end');
+    disp('loop end');
     
     if ishghandle(Hndl.mainwaitfigure)   % vox('break') may have closed it already
         close(Hndl.mainwaitfigure)
@@ -541,7 +541,7 @@ if n_samples > 0
        if ef_force>0 && ef_duration>0
            areafilename   = ['externalforce_glottalarea_' sprintf('%g', ef_force*100) 'mN_'  sprintf('%g', ef_duration) 'percent.csv'];
            csvwrite(areafilename, Infold.completeareafunction);
-           display(['wrote area function into file: ' areafilename]);
+           disp(['wrote area function into file: ' areafilename]);
        end
     end
     
@@ -584,7 +584,7 @@ if n_samples > 0
         vox('input');
     end;
 else
-    display('there was a bug with samples calculation.');
+    disp('there was a bug with samples calculation.');
 end
 CALC = 0;
 setenable(CALC)

@@ -397,7 +397,7 @@ switch action
                 set(Hndl.surfs,       'Enable', 'on')
                 %figdata.OldData = 0;
             catch
-                display('No figure data in file');
+                disp('No figure data in file');
                 try
                     close figure 60;
                 end
@@ -1748,7 +1748,7 @@ switch action
                 fnnn        = outfilename(filevalue);
                 filename    = char(fnnn);
             else
-                display('no FE files found.');
+                disp('no FE files found.');
             end
         else
             FEswitch = 0;
@@ -1906,7 +1906,7 @@ switch action
                displaycontforc;
                displayimpuls;
            catch
-               display('No figure data present (old file format)');
+               disp('No figure data present (old file format)');
                set(Hndl.surfs,       'Enable', 'off')
            end
        end
@@ -1996,7 +1996,7 @@ switch action
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
         % Info callback.
     case 'info'
-        helpwin('vox')
+        doc('vox')   % helpwin is obsolete
         % END of Info callback section
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
@@ -2075,6 +2075,6 @@ switch action
     case 'closevox'
         close all;
     otherwise
-        display('couldnt find some for this action:');action
+        disp('couldnt find some for this action:');action
 
 end;    % switch action case...

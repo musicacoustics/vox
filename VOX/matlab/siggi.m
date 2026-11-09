@@ -86,7 +86,7 @@ for n = 1 : 1 : num_it
 
     % dont know who breaks here....
     if BRK == 1
-        display('stopping');
+        disp('stopping');
         break
     end
 
@@ -469,7 +469,7 @@ end
        if ef_force>0 && ef_duration>0
            areafilename   = ['externalforce_glottalarea_' sprintf('%g', ef_force*100) 'mN_'  sprintf('%g', ef_duration) 'percent.csv'];
            csvwrite(areafilename, Infold.completeareafunction);
-           display(['wrote area function into file: ' areafilename]);
+           disp(['wrote area function into file: ' areafilename]);
        end
     end
 
