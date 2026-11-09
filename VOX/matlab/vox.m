@@ -47,8 +47,8 @@ switch action
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
         % Set all the initial variables values
         Fs        = 22050;% Sampling rate
-        rho       = 1.293;% [kg/m^2] at 20°C
-        c         = 350;  % [m/s] at 25°C
+        rho       = 1.293;% [kg/m^2] at 20Â°C
+        c         = 350;  % [m/s] at 25Â°C
         TMAX      = 5000;    % Duration of signal [ms]
         XI        = 0.135;% Damping of wave propagation in ctim2
         Xi0       = 0.005135;   % constant for damping in tractsig
@@ -95,7 +95,7 @@ switch action
             '/_a/ (hod)','/ea/ (head)','/ae/ (had)','/_o/ (hoe)',...
             '/uu/ (hood)','/aa/ (ton)' ,'/_i/ (hid)','/ao/ (paw)',...
             '/o1/ (oF6)' ,'/o2/ (oG6)','/o3/ (oA6)','/o4/ (oC7)',...
-            '/i_/ (BJK)' ,'/e_/ (BJK)','/ä_/ (BJK)','/a_/ (BJK)',...
+            '/i_/ (BJK)' ,'/e_/ (BJK)','/Ã¤_/ (BJK)','/a_/ (BJK)',...
             '/o_/ (BJK)','/u_/ (BJK)','/cy/ (10mm)');
         vowel       = 3;      % default start vowel 3:/_a/, 8:/aa/
         filevalue   = 1;
@@ -136,7 +136,7 @@ switch action
         Infold.extForceF0inSamples = 0;
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
-        % für Parameterbetrieb
+        % fÃ¼r Parameterbetrieb
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
         try
             if strcmp(var(1:4),'para')

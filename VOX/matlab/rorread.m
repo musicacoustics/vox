@@ -39,5 +39,5 @@ importradius = r;
 % generated array: importradius(blocks,radius)
 
 % samples beziehen sich auf 20 kHz !!!!!!!
-% Fläche in mm²
+% FlÃ¤che in mmÂ²
 % spacing 0.875 cm
