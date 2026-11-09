@@ -137,8 +137,8 @@ switch action
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
         % für Parameterbetrieb
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
-        try
-            if strcmp(var(1:4),'para')
+        if nargin >= 2 && strncmp(var, 'para', 4)   % was: try ... var(1:4) ... without catch
+            try
                 paramfig = findobj('Name','Parametermode');
                 handles  = guihandles(paramfig);
                 filename = get(handles.ed_filename,'String');
@@ -146,15 +146,17 @@ switch action
 
                 if ischar(filename) && contains(filename,'FE')
                     parapath = pwd;
-                    load([parapath,'\samplepara.mat']);
+                    load(fullfile(parapath,'samplepara.mat'));
                 else
-                    load([parapath,filename]);
+                    load(fullfile(parapath,filename));   % parapath may lack a trailing separator
                 end;
                 i = get(paramfig,'Userdata');
                 [data,Infold,PARA,BATCH,FOLD,TRACH,TRACT,NOISE,vowel,iniinput,TVAKT,PTG,TMAX,Fs,MAXSEGMENTS,...
                     MAXDEVLIMIT,XI,Xi0,MAXM,GRON] ...
                     = eval([var '(PARA,BATCH,FOLD,TRACH,TRACT,NOISE,vowel,iniinput,TVAKT,PTG,TMAX,Fs,' ...
                     'MAXSEGMENTS,MAXDEVLIMIT,XI,Xi0,MAXM,GRON,datas(i),i);']);
+            catch err
+                warning('Parameter mode: could not use the parameter file: %s', err.message);
             end
         end
 
