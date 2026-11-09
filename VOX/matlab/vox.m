@@ -1354,15 +1354,15 @@ switch action
             if filename ~=  0
                 LASTPATH = pathname;
                 filename = filename(1:(length(filename)-4));
-                Fsglobal = Fs;   % save global Fs in case of old mat file
-                load([pathname filename]);
+                S = load([pathname filename]);
                 if length(filename)>15
                     filename = [filename(1:12) '...'];
                 end;
-                if exist('data') ~= 1
-                    data.Fs = Fs;
-                    data.y  = y(:)';
-                    Fs = Fsglobal;   % write back global Fs
+                if isfield(S,'data')
+                    data = S.data;
+                else
+                    data.Fs = S.Fs;
+                    data.y  = S.y(:)';
                 end;
                 data.pathname = pathname;
                 data.filename = filename;
