@@ -36,8 +36,6 @@ function fout = voxwaitbar(x, whichbar, varargin)
 %   Copyright 1984-2000 The MathWorks, Inc.
 %   $Revision: 1.21 $  $Date: 2000/08/04 15:36:26 $
 
-global Hndl
-
 if nargin>=2
     if ischar(whichbar)
         type = 2; %we are initializing
@@ -121,7 +119,6 @@ switch type
             'Tag','TMWWaitbar',...
             'Interruptible', 'off', ...
             'Name', 'Vox Progress...', ...
-            'Color', Hndl.voxMainBGColor, ...
             'Visible','off');
 
         %%%%%%%%%%%%%%%%%%%%%

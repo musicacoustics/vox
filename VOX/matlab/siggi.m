@@ -371,6 +371,7 @@ for n = 1 : 1 : num_it
                 set(get(yaxe42,'Ylabel'),'String','F_{damp.,max} [N]');
                 set(get(yaxe42,'Xlabel'),'String','voc._x (r)  muc._x (g)  voc._z (b)  muc._z (k)');
                 grid on
+                voxcolor(gcf);   % black (k) lines follow the theme
             end
         end; % of GRONs
     end
