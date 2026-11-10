@@ -540,7 +540,7 @@ if n_samples > 0
        ef_duration    = get(handles.durationslider,  'Value')*100; % get value of duration in percent of f0
        if ef_force>0 && ef_duration>0
            areafilename   = ['externalforce_glottalarea_' sprintf('%g', ef_force*100) 'mN_'  sprintf('%g', ef_duration) 'percent.csv'];
-           csvwrite(areafilename, Infold.completeareafunction);
+           writematrix(Infold.completeareafunction, areafilename);   % csvwrite is not recommended
            disp(['wrote area function into file: ' areafilename]);
        end
     end
