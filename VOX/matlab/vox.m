@@ -983,6 +983,22 @@ switch action
 
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
+        % INPUT popup callback: the user chose a mode (upper right). Set its
+        % default duration (voxduration), then load and show its result.
+        % Only here: vox('input') also runs after calculations, loads and
+        % configuration changes (fold/tract/noise/trach, register, vowel,
+        % Load buttons), which load the matching result but keep the
+        % Duration field.
+    case 'inputselect'
+        ms = voxduration(get(Hndl.INPUT, 'Value'));
+        if ~isempty(ms) && ~PARA && ~IMPORT
+            TMAX = ms;
+            vox('refreshDuration','strsli');
+        end
+        vox('input');
+
+
+        % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
         % INPUT callback.
     case 'input'
@@ -1622,18 +1638,6 @@ switch action
         if get(Hndl.gron, 'value') ==  1;
             vox('gron');
         end;
-
-        % switched to Fold, Tract or Combi: default duration (voxduration);
-        % a typed value applies until the next switch. Only on a switch:
-        % vox('input') also runs after every calculation.
-        if ~isequal(get(Hndl.INPUT, 'UserData'), value)
-            set(Hndl.INPUT, 'UserData', value);
-            ms = voxduration(value);
-            if ~isempty(ms) && ~PARA && ~IMPORT
-                TMAX = ms;
-                vox('refreshDuration','strsli');
-            end
-        end
 
         % END of INPUT callback section
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
