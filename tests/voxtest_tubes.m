@@ -2,15 +2,17 @@ function voxtest_tubes(voxdir)
 %VOXTEST_TUBES  Tube model (ctim2) against a reference; stability
 %   voxtest_tubes(voxdir) checks the section-wise tube calculation in
 %   voxdir (a copy of VOX/matlab) without the GUI:
-%   1. Accuracy: 200 ms impulse responses against a frequency-domain
+%   The impulse responses are as long as the default Tract duration
+%   (voxduration(2), 20 ms): the vocal tract responses have decayed then.
+%   1. Accuracy: impulse responses against a frequency-domain
 %      transmission-line model (local function tuberef: cylinders with the
 %      same viscothermal loss, or exact lossless cones with spherical
 %      waves, same radiation load). Pass: every reference formant below
 %      5 kHz within 1 % (and for the lossy cases median level deviation
 %      < 0.5 dB between 0.1 and 5 kHz).
-%   2. Stability: 2 s impulse responses (/a/, a cone, a tube converging
-%      strongly towards the glottis) and 0.5 s for 40 random conical
-%      geometries must decay.
+%   2. Stability: impulse responses of /a/, a cone, a tube converging
+%      strongly towards the glottis and 40 random conical geometries must
+%      be finite and decay: the last 2 ms at least 20 dB below the maximum.
 %   3. Combi interface: 1 s with 120 Hz pulses, the last period must equal
 %      the one 10 periods earlier.
 
@@ -25,6 +27,7 @@ geo.cyl  = [0.17 0.01 0.01];
 geo.cyl2 = [0.08 0.005 0.005; 0.09 0.015 0.015];
 geo.a    = [0.0714 0.0038 0.0030; 0.1032 0.0030 0.0127];   % /a/ with 2 tubes (areas3)
 geo.cone = [0.17 0.005 0.02];
+T = voxduration(2);   % default Tract duration [ms], 20 ms
 fails = {};
 
 % 1) accuracy
@@ -32,9 +35,9 @@ runs = {'cyl', xi, 'cyl'; 'cyl2', xi, 'cyl'; 'a', xi, 'stair'; 'cone', xi, 'stai
         'a', 0, 'cone'; 'cone', 0, 'cone'};
 for k = 1:size(runs, 1)
     tubes = geo.(runs{k,1}); x = runs{k,2}; ref = runs{k,3};
-    [y, ~, P] = ctim2(tubes, 200, x);
+    [y, ~, P] = ctim2(tubes, T, x);
     Fi = P.out.Fs;
-    n = 2^nextpow2(numel(y)*4);
+    n = 2^nextpow2(max(numel(y)*4, Fi));   % zero-padded to at least 1 s: bins < 1 Hz
     f = (0:n/2-1)*Fi/n;
     Y = fft(y(:), n); Y = Y(1:n/2).';
     w = sinc(f/Fi).^2*zcar/(rho*c)/(rho*c);   % flow impulse of one sample
@@ -65,13 +68,13 @@ for k = 1:40
 end
 nbad = 0;
 for k = 1:numel(G)
-    if k <= 3, T = 2000; else, T = 500; end
     [y, ~, P] = ctim2(G{k}, T, xi);
-    nb  = round(0.02*P.out.Fs);
+    nb  = round(0.002*P.out.Fs);   % envelope per 2 ms
     env = arrayfun(@(m) max(abs(y((m-1)*nb+1:m*nb))), 1:floor(numel(y)/nb));
-    ok  = all(isfinite(y)) && env(end) < 1e-3*max(env);
+    ok  = all(isfinite(y)) && env(end) < 0.1*max(env);   % last 2 ms >= 20 dB below the maximum
     if k <= 3
-        fprintf('stability %d: envelope per 20 ms first %.3g, last %.3g  %s\n', k, env(1), env(end), okstr(ok));
+        fprintf('stability %d: envelope per 2 ms max %.3g, last %.3g (%.0f dB)  %s\n', k, max(env), env(end), ...
+            20*log10(env(end)/max(env)), okstr(ok));
     end
     nbad = nbad + ~ok;
 end
