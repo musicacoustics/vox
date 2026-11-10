@@ -49,7 +49,8 @@ switch action
         Fs        = 22050;% Sampling rate
         rho       = 1.293;% [kg/m^2] at 20°C
         c         = 350;  % [m/s] at 25°C
-        TMAX      = 5000;    % Duration of signal [ms]
+        TMAX      = voxduration(1);  % Duration of signal [ms] (was 5000); default
+                                     % of each Input mode, see voxduration
         XI        = 0.135;% Damping of wave propagation in ctim2
         Xi0       = 0.005135;   % constant for damping in tractsig
         GRONF     = 1;      % Flag for graphic display of fold results
@@ -385,10 +386,7 @@ switch action
                 data.y  = y(:)';
                 data.Fs = Fs;
             end;
-            try
-                TMAX = data.Tmax;
-                vox('refreshDuration','strsli');
-            end
+            % loading a file does not change the Duration field (was TMAX = data.Tmax)
             data.filename = filename;
             data.pathname = pathname;
             Infold = data.Infold;%mo
@@ -849,10 +847,7 @@ switch action
             SD_NAMES(value,:) = [filename(1:15)];
             data.filename = filename;
             data.pathname = pathname;
-            try
-                TMAX = data.Tmax;
-                vox('refreshDuration','strsli');
-            end
+            % loading a file does not change the Duration field (was TMAX = data.Tmax)
             save(['out_' modechar 'fi'],'data');
             set(Hndl.TractCalc, 'enable', 'off');
             set(Hndl.INPUT, 'value', 2);
@@ -985,6 +980,22 @@ switch action
             end
         end;
         % END of toback callback section
+
+
+        % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
+        % INPUT popup callback: the user chose a mode (upper right). Set its
+        % default duration (voxduration), then load and show its result.
+        % Only here: vox('input') also runs after calculations, loads and
+        % configuration changes (fold/tract/noise/trach, register, vowel,
+        % Load buttons), which load the matching result but keep the
+        % Duration field.
+    case 'inputselect'
+        ms = voxduration(get(Hndl.INPUT, 'Value'));
+        if ~isempty(ms) && ~PARA && ~IMPORT
+            TMAX = ms;
+            vox('refreshDuration','strsli');
+        end
+        vox('input');
 
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
@@ -1150,15 +1161,15 @@ switch action
                 try
                     data.t = (0:length(data.y)-1)/data.Fs;
                 end
-                try
-                    TMAX = data.Tmax;
-                catch
+                % length of the displayed signal; it does not change the
+                % Duration field any more (was TMAX = data.Tmax)
+                if ~isfield(data, 'Tmax')
                     try
                         data.Tmax = max(data.t)*1000;
-                        TMAX = data.Tmax;
+                    catch err
+                        disp(['signal without time vector: ' err.message]);
                     end
                 end
-                vox('refreshDuration','strsli');%mo
                 if (get(Hndl.TractCalcMode,'value') ==  3)  % file
                     if (TRACTDISP ==  1 | TRACTDISP ==  2) % FRF - mouth
                         data.z = 0;    % only the y-vector is usefull
@@ -1166,7 +1177,6 @@ switch action
                         data.y = 0; % only the z-vector is usefull
                         data.t = (0:length(data.z)-1)/data.Fs;
                         data.Tmax = max(data.t)*1000;
-                        TMAX = data.Tmax;
                     end
                 end
                 set(Hndl.figureNumber,'UserData',data);
@@ -1238,15 +1248,15 @@ switch action
                 try
                     data.t = (0:length(data.y)-1)/data.Fs;
                 end
-                try
-                    TMAX = data.Tmax;
-                catch
+                % length of the displayed signal; it does not change the
+                % Duration field any more (was TMAX = data.Tmax)
+                if ~isfield(data, 'Tmax')
                     try
                         data.Tmax = max(data.t)*1000;
-                        TMAX = data.Tmax;
+                    catch err
+                        disp(['signal without time vector: ' err.message]);
                     end
                 end
-                vox('refreshDuration','strsli');%mo
                 set(Hndl.figureNumber,'UserData',data);
                 n = SD_DISP;
                 eval([SD_PLOTCMD(n,:)]);  % call to plot_tuf,plot_puf or plot_spec
@@ -1369,13 +1379,9 @@ switch action
                 file(file ==  ' ') = []; % get rid of extra blanks in filename
                 %      save(file, 'data')
                 data.t = (0:length(data.y)-1)/data.Fs;
-                try
-                    TMAX = data.Tmax;
-                catch
+                if ~isfield(data, 'Tmax')   % does not change the Duration field any more
                     data.Tmax = max(data.t)*1000;
-                    TMAX = data.Tmax;
                 end
-                vox('refreshDuration','strsli');%mo
                 set(Hndl.figureNumber,'UserData', data);
                 n = SD_DISP;
                 eval([SD_PLOTCMD(n,:)]);
@@ -1632,8 +1638,6 @@ switch action
         if get(Hndl.gron, 'value') ==  1;
             vox('gron');
         end;
-
-
 
         % END of INPUT callback section
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
