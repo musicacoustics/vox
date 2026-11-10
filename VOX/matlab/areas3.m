@@ -810,8 +810,11 @@ switch action
       datainit(MAXSEGMENTS,MAXDEVLIMIT, ...
          XI, Xi0, radimproutine);	% initialize data struct
       areas3('refresh');
-      TMAX = 10;
-      vox('refreshDuration','strsli');
+      ms = voxduration(get(Hndl.INPUT,'Value'));   % was TMAX = 10
+      if ~isempty(ms)
+         TMAX = ms;
+         vox('refreshDuration','strsli');
+      end
       % END of Damping Callback
 
 
