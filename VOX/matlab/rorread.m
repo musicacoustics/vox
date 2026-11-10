@@ -4,7 +4,7 @@ function [importradius,importspacing,TMAX,Fs,phonsamples] = rorread(filename)
 
 % extract phonationmoments
 filename2 = [filename(1:end-3), 'fri'];
-vector2 = textread(filename2,'%f');
+vector2 = readnumbers(filename2);   % was textread(filename2,'%f') (not recommended)
 for i = 1:length(vector2)
    samples(i) = vector2(2*i-1);
    areas(i) = vector2(2*i);
@@ -14,7 +14,7 @@ for i = 1:length(vector2)
 end
 phonsamples = samples(find(areas <= 5));
 
-vector = textread(filename,'%f');
+vector = readnumbers(filename);     % was textread(filename,'%f')
 blocks = floor(size(vector,1)/22);
 data = vector(1:22)';
 for n = 1:blocks-1
@@ -39,5 +39,16 @@ importradius = r;
 % generated array: importradius(blocks,radius)
 
 % samples beziehen sich auf 20 kHz !!!!!!!
-% Fläche in mm²
+% FlÃ¤che in mmÂ²
 % spacing 0.875 cm
+
+
+function v = readnumbers(fname)
+% all numbers of a text file as one column, like textread(fname,'%f')
+fid = fopen(fname, 'r');
+if fid < 0
+   error('rorread: cannot open %s', fname);
+end
+c = textscan(fid, '%f');
+fclose(fid);
+v = c{1};

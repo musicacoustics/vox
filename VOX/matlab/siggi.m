@@ -32,7 +32,7 @@ ALONE = Infold.flags.ALONE;
 
 % create waitbar ------------------------------------------------------
 if ALONE
-    h1 = waitbar(0, 'Generating vocal fold signal...');
+    h1 = voxwaitbar(0, 'Generating vocal fold signal...');
 end
 
 % initialisation ------------------------------------------------------
@@ -86,7 +86,7 @@ for n = 1 : 1 : num_it
 
     % dont know who breaks here....
     if BRK == 1
-        display('stopping');
+        disp('stopping');
         break
     end
 
@@ -103,7 +103,7 @@ for n = 1 : 1 : num_it
     glotpar;
 
     % calculate flow and resulting pressures -------------------
-    flow;
+    voxflow;   % renamed from flow.m (shadowed the MATLAB function flow)
     press;
 
     % calculate forces on the masses ---------------------------
@@ -163,7 +163,7 @@ for n = 1 : 1 : num_it
         %=====================================================
         % Graphic output of intermediate signals
         if GRON
-            [isfig,figh]=figflag('Sound pressure during calculation',1);
+            [isfig,figh]=voxfigflag('Sound pressure during calculation',1);
             if (isfig == 1)	% figure exists
                 set(0,'CurrentFigure', figh)
             end
@@ -241,7 +241,7 @@ for n = 1 : 1 : num_it
                     Hndl.infofigure = figure('visible','on','NumberTitle','off', ...
                         'Name','Sound pressure during calculation','Units','normalized',...
                         'Position',[.55 .55 .45 .4]);
-                    set(Hndl.infofigure,'DoubleBuffer','on');
+                    % (DoubleBuffer removed: no effect since R2014b graphics)
                 end
 
                 Hndl.infofig.yaxe11 = subplot(3,3,1);
@@ -371,6 +371,7 @@ for n = 1 : 1 : num_it
                 set(get(yaxe42,'Ylabel'),'String','F_{damp.,max} [N]');
                 set(get(yaxe42,'Xlabel'),'String','voc._x (r)  muc._x (g)  voc._z (b)  muc._z (k)');
                 grid on
+                voxcolor(gcf);   % black (k) lines follow the theme
             end
         end; % of GRONs
     end
@@ -379,13 +380,15 @@ for n = 1 : 1 : num_it
     % waitbar step -----------------------------------------------------
     if ALONE
         try
-            waitbar(n/num_it)
+            voxwaitbar(n/num_it)
         end
     end
 end % of loop
-BRK = 0;
 if ALONE
-  close(h1)
+  BRK = 0;   % in combi mode keep BRK: combicalc checks it after this step
+  if ishghandle(h1)   % vox('break') may have closed it already
+    close(h1)
+  end
 end
 
 
@@ -434,9 +437,9 @@ if ~iscombi
         if min(min(figdata.vibro)) < 0 %negative values exist
             per=(max(max(figdata.vibro))+abs(min(min(figdata.vibro))))/100;
             upper=round(max(max(figdata.vibro))/per);
-            lower=round(abs(min(min(figdata.vibro))/per));
+            lower=max(round(abs(min(min(figdata.vibro))/per)), 1);   % index, at least 1
             cMap(lower:lower+upper,1) = linspace(0,1,upper+1);
-            cMap(1:lower,3) = linspace(lower/30,0,lower);
+            cMap(1:lower,3) = linspace(min(lower/30,1),0,lower);       % colormap values <= 1
         else  %no negative values
             cMap(1:100,1) = linspace(0,1,100);    
         end
@@ -451,13 +454,13 @@ end
 
 % close video file, otherwise we cannot open it
 if GRONF & MOV & ~iscombi & Hndl.movisgood > 0
-    display('saved avifile');
-    Hndl.mov = close (Hndl.mov);
+    disp(['saved movie file: ' fullfile(Hndl.mov.Path, Hndl.mov.Filename)]);
+    close(Hndl.mov);   % VideoWriter close returns nothing
 end
 
 % save area function for later, when external forces is active
     guiname = 'external_forces_gui';        % name of gui
-    [isda]  = figflag(guiname, 1);
+    [isda]  = voxfigflag(guiname, 1);
     if isda
        Hndl.efgui     = openfig(guiname, 'reuse');
        handles        = guihandles(Hndl.efgui);
@@ -466,13 +469,13 @@ end
        ef_duration    = get(handles.durationslider,  'Value')*100; % get value of duration in percent of f0
        if ef_force>0 && ef_duration>0
            areafilename   = ['externalforce_glottalarea_' sprintf('%g', ef_force*100) 'mN_'  sprintf('%g', ef_duration) 'percent.csv'];
-           csvwrite(areafilename, Infold.completeareafunction);
-           display(['wrote area function into file: ' areafilename]);
+           writematrix(Infold.completeareafunction, areafilename);   % csvwrite is not recommended
+           disp(['wrote area function into file: ' areafilename]);
        end
     end
 
 % what is this for?
-if GRON & MOV
+if GRON & MOV && isfield(Hndl, 'foldmovfig') && ~isempty(Hndl.foldmovfig)   % empty: movie dialog cancelled
     saveas(Hndl.infofigure,Hndl.foldmovfig)
 end
 

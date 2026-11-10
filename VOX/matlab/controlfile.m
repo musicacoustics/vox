@@ -10,8 +10,12 @@ end;
 
 
 controlfig      = openfig('control_file_gui','reuse');
+voxcolor(controlfig, 'light');   % the .fig stores light colours
 Hndl.controlfig = controlfig;
 handles         = guihandles(controlfig);
+% unused GUIDE leftover "Edit Text": its callback calls control_file_gui.m,
+% which does not exist, so any input there raised an error
+set(handles.edit1, 'Callback', '', 'Visible', 'off');
 weg = 0;
 
 
@@ -524,6 +528,9 @@ switch callback
       end
 
 
+      % a single segment (very short signal) cannot be drawn as stairs: with
+      % one time point the 10 radius curves form one row and stairs fails
+      if numel(timevector) > 1
       %  plot changes
       if actstr
          figure(612);
@@ -541,6 +548,7 @@ switch callback
          figure(614);
          stairs(timevector(1:length(timevector)), newValue3(1:end,1:10));
          grid on; xlabel('Time [ms]');ylabel(oldStr3);
+      end
       end
 end  %call callback
 %===========================================================================================================================

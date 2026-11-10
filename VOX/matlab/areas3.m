@@ -30,7 +30,7 @@ switch action
       if (get(0,'ScreenDepth') == 1)
          S = gray(64);
       end
-      labelColor		= 192/255*[1 1 1];
+      % no fixed label colour: frame, labels and entries use the theme colours
 
       set(0,'CurrentFigure',Hndl.ModTractFig)
       clf
@@ -63,13 +63,11 @@ switch action
 
       lowerframe = uicontrol('Style','frame',...
          'Units','normalized',...
-         'Position',[.07 .05 .86 .19],...
-         'BackgroundColor',labelColor);
+         'Position',[.07 .05 .86 .19]);
 
       uicontrol('Style','text',...
          'Units','normalized',...
          'Position',[.09 .18 .09 .05],...
-         'BackgroundColor',labelColor,...
          'String','Radius');
 
       radius = uicontrol('Style','Edit',...
@@ -82,8 +80,7 @@ switch action
       uicontrol('Style','text',...
          'Units','normalized',...
          'Position',[.3 .18 .1 .05],...
-         'String','Area',...
-         'BackgroundColor',labelColor);
+         'String','Area');
 
       area = uicontrol('Style','Edit',...
          'Units','normalized',...
@@ -95,8 +92,7 @@ switch action
       uicontrol('Style','text',...
          'Units','normalized',...
          'Position',[.52 .18 .12 .05],...
-         'String','Disc',...
-         'BackgroundColor',labelColor);
+         'String','Disc');
 
       disc = uicontrol('Style','Edit',...
          'Units','normalized',...
@@ -108,14 +104,13 @@ switch action
       uicontrol('Style','text',...
          'Units','normalized',...
          'Position',[.09 .12 .09 .05],...
-         'String','Mode',...
-         'BackgroundColor',labelColor);
+         'String','Mode');
 
       if get(Hndl.INPUT,'Value') == 4
-         popupStr = str2mat('stairs','tubes','import');
+         popupStr = char('stairs','tubes','import');
          popmode = 3;
       else
-         popupStr = str2mat('stairs','tubes');
+         popupStr = char('stairs','tubes');
          popmode = 2;
       end
 
@@ -129,8 +124,7 @@ switch action
       uicontrol('Style','text',...
          'Units','normalized',...
          'Position',[.09 .063 .09 .04],...
-         'String','Damping',...
-         'BackgroundColor',labelColor);
+         'String','Damping');
 
       Damping = uicontrol('Style','Edit',...
          'Units','normalized',...
@@ -142,8 +136,7 @@ switch action
       uicontrol('Style','text',...
          'Units','normalized',...
          'Position',[.3 .06 .1 .05],...
-         'String','MaxDev',...
-         'BackgroundColor',labelColor);
+         'String','MaxDev');
 
       maxdevlimit = uicontrol('Style','Edit',...
          'Units','normalized',...
@@ -156,22 +149,19 @@ switch action
       uicontrol('Style','text',...
          'Units','normalized',...
          'Position',[.3 .12 .1 .05],...
-         'String','AreaDev',...
-         'BackgroundColor',labelColor);
+         'String','AreaDev');
 
       devlimit = uicontrol('Style','Edit',...
          'Units','normalized',...
          'Position',[.4 .12 .1 .05],...
          'Enable','off',...
-         'BackgroundColor',labelColor,...
          'Tag','devlimit',...
          'String',num2str(data.properties.maxdevlimit));
 
       uicontrol('Style','text',...
          'Units','normalized',...
          'Position',[.52 .06 .12 .05],...
-         'String','Maxsegments',...
-         'BackgroundColor',labelColor);
+         'String','Maxsegments');
 
       maxsegments = uicontrol('Style','Edit',...
          'Units','normalized',...
@@ -184,24 +174,21 @@ switch action
       uicontrol('Style','text',...
          'Units','normalized',...
          'Position',[.52 .12 .12 .05],...
-         'String','Segments',...
-         'BackgroundColor',labelColor);
+         'String','Segments');
 
       segments = uicontrol('Style','Edit',...
          'Units','normalized',...
          'Position',[.64 .12 .1 .05],...
          'Enable','off',...
-         'BackgroundColor',labelColor,...
          'Tag','segments',...
          'String',num2str(data.properties.maxsegments));
 
       uicontrol('Style','text',...
          'Units','normalized',...
          'Position',[.8 .18 .11 .05],...
-         'String','Rad.-Imp.',...
-         'BackgroundColor',labelColor);
+         'String','Rad.-Imp.');
 
-      popupStr = str2mat('low f','all f');
+      popupStr = char('low f','all f');
 
       radimp = uicontrol('Style','Popup',...
          'Units','normalized',...
@@ -239,7 +226,7 @@ switch action
       set(get(Hndl.TractMod.areafunc, 'Title'),'String', TitleStr);
       xlabel('Distance from glottis [mm]');
       ylabel('Radius [mm]');
-      AREA_DAT = [ linehandle ; 0 ; 0 ];
+      AREA_DAT = struct('line', linehandle, 'fixedx', 0, 'fixedy', 0);   % was [linehandle; 0; 0]: a graphics array since R2014b, which cannot take numbers
 
       %  watchoff(oldFigNumber);
 
@@ -252,7 +239,7 @@ switch action
       x = point(1,1);
       y = point(1,2);
 
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       line_x=get(linehandle,'XData');
       line_y=get(linehandle,'YData');
       dist=(line_x-x).^2 + (line_y-y).^2;
@@ -264,8 +251,8 @@ switch action
       set(Hndl.TractMod.areafunc,'YLimMode','manual');
       drawnow;
 
-      AREA_DAT(2) = fixedx;
-      AREA_DAT(3) = fixedy;
+      AREA_DAT.fixedx = fixedx;
+      AREA_DAT.fixedy = fixedy;
 
       set(gcf,'WindowButtonMotionFcn', 'areas3(''move'');');
       set(gcf,'WindowButtonUpFcn', 'areas3(''up'');');
@@ -281,12 +268,12 @@ switch action
 
       %CurrentRadius = AREA_DAT(1);
       %CurrentDisc = AREA_DAT(2);
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       %Radius = findobj('Tag','radius');
       %Area = findobj('Tag','area');
       %Disc = findobj('Tag','disc');
-      fixedx = AREA_DAT(2);
-      fixedy = AREA_DAT(3);
+      fixedx = AREA_DAT.fixedx;
+      fixedy = AREA_DAT.fixedy;
       length_fii = size(data.radius,1);
       YData = get(linehandle,'YData');
 
@@ -343,9 +330,9 @@ switch action
       % up callback
    case 'up'
 
-      set(AREA_DAT(1),'LineStyle','-');
+      set(AREA_DAT.line,'LineStyle','-');
 
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       YData = get(linehandle,'YData');
       set(Hndl.TractMod.areafunc, 'YLim', [0 max(YData)+1]);
       set(gcf,'WindowButtonMotionFcn','');
@@ -360,12 +347,12 @@ switch action
       data=get(Hndl.figureNumber, 'UserData');
       %CurrentRadius = AREA_DAT(1);
       %CurrentDisc = AREA_DAT(2);
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       %Radius = findobj('Tag','radius');
       %Area = findobj('Tag','area');
       %Disc = findobj('Tag','disc');
-      fixedx = AREA_DAT(2);
-      fixedy = AREA_DAT(3);
+      fixedx = AREA_DAT.fixedx;
+      fixedy = AREA_DAT.fixedy;
       length_fii = size(data.radius,1);
       YData = get(linehandle,'YData');
 
@@ -383,14 +370,14 @@ switch action
       xb(length(xb)+1) = xb(length(xb));
       yb(length(yb)+1) = yb(length(yb));
 
-      set(AREA_DAT(1),'YData',yb);
-      set(AREA_DAT(1),'XData',xb);
+      set(AREA_DAT.line,'YData',yb);
+      set(AREA_DAT.line,'XData',xb);
 
       data.radius = data.radius/1000;
       data.spacing = data.spacing/1000;
       set(Hndl.figureNumber, 'UserData',data);
 
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       YData = get(linehandle,'YData');
       set(Hndl.TractMod.areafunc, 'YLim', [0 max(YData)+1]);
       %  drawnow;
@@ -413,7 +400,7 @@ switch action
       end;
 
       %AREA_DAT(2) = CurrentDisc;
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       %radius = findobj('Tag','radius');
       %area = findobj('Tag','area');
       %disc = findobj('Tag','disc');
@@ -460,12 +447,12 @@ switch action
 
       %AREA_DAT(1) = CurrentRadius;
       %CurrentDisc = AREA_DAT(2);
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       %radius = findobj('Tag','radius');
       %area = findobj('Tag','area');
       length_fii = size(data.radius,1);
       YData = get(linehandle,'YData');
-      Area = pi*(Currentradius^2);
+      Area = pi*(CurrentRadius^2);
 
       data.radius = data.radius*1000;
       data.spacing = data.spacing*1000;
@@ -506,7 +493,7 @@ switch action
       CurrentRadius = sqrt(Area/pi);
       %AREA_DAT(1) = CurrentRadius;
       %CurrentDisc = AREA_DAT(2);
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       radius = findobj('Tag','radius');
       area = findobj('Tag','area');
       length_fii = size(data.radius,1);
@@ -588,12 +575,12 @@ switch action
       Mode = data.properties.mode;
       % CurrentRadius = AREA_DAT(1);
       % CurrentDisc = AREA_DAT(2);
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       radius = findobj('Tag','radius');
       area = findobj('Tag','area');
       disc = findobj('Tag','disc');
-      fixedx = AREA_DAT(2);
-      fixedy = AREA_DAT(3);
+      fixedx = AREA_DAT.fixedx;
+      fixedy = AREA_DAT.fixedy;
       length_fii = size(data.radius,1);
 
       vowelname = get(Hndl.VOWEL, 'string');
@@ -708,13 +695,14 @@ switch action
                set(line_handle,'HitTest','off');
                X1 = X2;
             end;
-            legend(line_handle,'last',2);
+            legend(line_handle,'last','Location','northwest');   % numeric location 2 is an error now
             set(Hndl.figureNumber, 'UserData',data);
          end;
       end;  % of Mode callback
       YData = get(linehandle,'YData');
+      XData = get(linehandle,'XData');   % xb is not computed in File mode
       set(Hndl.TractMod.areafunc, 'YLim', [0 max(YData)+1]);
-      set(Hndl.TractMod.areafunc, 'XLim', [0 max(xb)]);
+      set(Hndl.TractMod.areafunc, 'XLim', [0 max(XData)]);
       if Mode ~= 4
          set(get(Hndl.TractMod.areafunc, 'Title'),'String', TitleStr);
       end
@@ -761,15 +749,14 @@ switch action
       %==========================================================================
       % Import Callback
    case 'import'
-      oldpath = pwd;
-      cd('c:\bcd');
+      % no fixed start folder (was cd('c:\bcd'), which exists on no current machine)
       [filename, filepath] = uigetfile('*.ror',['choose an area-data-file?']);
-      cd(oldpath);
-      if filename ~= 0
+      if ischar(filename)
          BATCH = 1;
          set(Hndl.batch,'Value',1);
          set(Hndl.batch,'enable','off');
          controlfig = openfig('control_file_gui','reuse');
+         voxcolor(controlfig, 'light');   % the .fig stores light colours
          Hndl.controlfig = controlfig;
          rb_trac = findobj(Hndl.controlfig,'Tag','rb_trac');
          set(rb_trac,'Enable','off');
@@ -811,15 +798,18 @@ switch action
       datainit(MAXSEGMENTS,MAXDEVLIMIT, ...
          XI, Xi0, radimproutine);	% initialize data struct
       areas3('refresh');
-      TMAX = 10;
-      vox('refreshDuration','strsli');
+      ms = voxduration(get(Hndl.INPUT,'Value'));   % was TMAX = 10
+      if ~isempty(ms)
+         TMAX = ms;
+         vox('refreshDuration','strsli');
+      end
       % END of Damping Callback
 
 
    case 'done'
       data=get(Hndl.figureNumber, 'UserData');
       length_fii = size(data.radius,1);
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       YData = get(linehandle,'YData');
 
       data.radius = data.radius*1000;

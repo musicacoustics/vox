@@ -35,7 +35,7 @@ end
    flowvelocity, glotarea, ii, spacing, radius, St, shedtimer);
 
 if noisemovflag
-   Hndl.noisemov = addframe(Hndl.noisemov,Hndl.noisefig);
+   writeVideo(Hndl.noisemov, getframe(Hndl.noisefig));   % addframe has been removed
 end
 
 [PARNOISE.out, vortices] = vortexnoise(vortices, radius, ...
@@ -74,7 +74,7 @@ end
 
 
 sizevortices = size(vortices,2);
-if GRON & (figflag('Vortex generation',1) == 1) & (sizevortices>0)
+if GRON & (voxfigflag('Vortex generation',1) == 1) & (sizevortices>0)
    set(0,'CurrentFigure',Hndl.noisefig)
    set(Hndl.noisefig,'CurrentAxes',Hndl.noisefigplot)
    cla;
@@ -146,7 +146,7 @@ for vortex = 1:sizevortices   % vortex counter
    anglefactor = 0.5*diameter	/(position - focuspoint);
 
    if GRON
-      if figflag('Vortex generation',1) == 1
+      if voxfigflag('Vortex generation',1) == 1
          set(0,'CurrentFigure',Hndl.noisefig)
          set(Hndl.noisefig,'CurrentAxes',Hndl.noisefigplot)
          if velocity == 0
@@ -164,6 +164,10 @@ for vortex = 1:sizevortices   % vortex counter
          else
             lcolor = vortexcolor;
          end
+         [~, isdark] = voxcolor('fg', Hndl.noisefigplot);
+         if isdark
+            lcolor = 1-lcolor;   % strong vortices bright on a dark background
+         end
          hold on
          line([position*1000 position*1000], ... % draw vortex
             [-diameter*1000/2 diameter*1000/2], ...
@@ -178,7 +182,7 @@ for vortex = 1:sizevortices   % vortex counter
             Hndl.noisefig = figure('visible','on','NumberTitle','off', ...
                'Name','Vortex generation','Units','Pixels',...
                'Position',[660 260 250 330]);
-            set(Hndl.noisefig,'DoubleBuffer','on');
+            % (DoubleBuffer removed: no effect since R2014b graphics)
             set(Hndl.noisefig,'MenuBar', 'none');
             Hndl.noisefigplot = axes;
             xlabel('Distance from glottis [mm]');

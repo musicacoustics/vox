@@ -16,7 +16,7 @@ function w0g = interpvf(w0,wmax,MAXM,a,lg,w0lp,wmaxla,w0rp,wmaxra);
 % Inifold
 % Params
 %
-% Author: Malte Kob, Edwin Calderón
+% Author: Malte Kob, Edwin CalderÃ³n
 % RWTH Aachen, Department of Phoniatrics, Pedaudiology and Communications Disorder
 % email address: mkob@ukaachen.de, edwin.calderon@rwth-aachen.de
 % Copyright (c) 2007-2008 Malte Kob

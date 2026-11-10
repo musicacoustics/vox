@@ -144,7 +144,7 @@ function phaseslider_Callback(hObject, eventdata, handles)
 % set editphase editfield to actual value
 ep   = findobj('Tag', 'editphase');
 oval = get(hObject, 'Value');
-nval = [sprintf('%3.0f', oval*360-180) '°'];
+nval = [sprintf('%3.0f', oval*360-180) 'Â°'];
 set(ep,'String',nval);
 
 
@@ -176,7 +176,7 @@ oval = sscanf(get(hObject, 'String'), '%d');
 nval = (oval+180)/360;
 set(ep,'Value',nval);
 % add degree sign
-set(hObject, 'String', [get(hObject, 'String') '°']);
+set(hObject, 'String', [get(hObject, 'String') 'Â°']);
 
 % --- Executes during object creation, after setting all properties.
 function editphase_CreateFcn(hObject, eventdata, handles)
@@ -276,12 +276,12 @@ function factortoggle_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-faced   = findobj('Tag', 'forcefactor');
+faced   = findall(ancestor(hObject, 'figure'), 'Tag', 'forcefactor');   % handles is empty (window opened with openfig)
 factors = -1*str2num(get(faced, 'String'));
-maxm    = size(factors);
+maxm    = numel(factors);        % size() gave a vector, 1:maxm-1 is an error for it
 setStr  = '';
 for i=1:maxm-1
     setStr = [setStr sprintf('%1.0f', factors(i)) ';'];
 end
-setStr = [setStr sprintf('%1.0f', factors(i))];
+setStr = [setStr sprintf('%1.0f', factors(maxm))];   % was factors(i): last value got lost
 set(faced, 'String', setStr);

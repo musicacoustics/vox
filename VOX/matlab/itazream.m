@@ -12,7 +12,7 @@ function [SampleZahl,SamplingRate,ADoffset,...
 % Eingangs-Parameter:
 %	Name [string]:		Dateiname
 %
-% Ausgangs-Parameter (Erklärung siehe Programmtext):
+% Ausgangs-Parameter (ErklÃ¤rung siehe Programmtext):
 %
 % [SampleZahl,SamplingRate,ADoffset,...
 %  Kanalanzahl,KanalNr,...
@@ -53,23 +53,23 @@ else
    Kanalanzahl		= fread (fid,1,'schar');	%{ 14} byte;        {1 : Mono, bis zu 31 sind erlaubt}
    %  Kanalliste % fehlt noch
    KanalNr	    	= fread (fid,1,'schar');	%{ 15} byte;        {aktueller Kanal, 0 bis Kanalanzahl - 1}
-   alleBearb     	= fread (fid,1,'char');		%{ 16} boolean;     {1 : Editieren wirkt auf alle Kanäle}
-   Preemphasis   	= fread (fid,1,'char');		%{ 17} boolean;     {1 : 50/15 µs Preemphasis}
+   alleBearb     	= fread (fid,1,'char');		%{ 16} boolean;     {1 : Editieren wirkt auf alle KanÃ¤le}
+   Preemphasis   	= fread (fid,1,'char');		%{ 17} boolean;     {1 : 50/15 Âµs Preemphasis}
    LiCursAktiv   	= fread (fid,1,'char');		%{ 18} boolean;     {1 : Linker Cursor aktiv}
    CursorKreuz   	= fread (fid,1,'char');		%{ 19} boolean;     {1 : Horizontale Cursorlinie erscheint}
    CursorLock    	= fread (fid,1,'char');		%{ 20} boolean;     {1 : Cursor bewegen sich gemeinsam}
    Darstellung   	= fread (fid,1,'char');		%{ 21} MalTyp;      {0 : Punkte,1 : Striche, 2 : Balken}
-   Odarstellung  	= fread (fid,1,'char');		%{ 22} MalTyp;      {wie Darstellung, aber nur für Ortskurve}
-   Bewertung     	= fread (fid,1,'char');		%{ 23} char;        {für Spektren : Bewertung als Buchstabe 'A'}
+   Odarstellung  	= fread (fid,1,'char');		%{ 22} MalTyp;      {wie Darstellung, aber nur fÃ¼r Ortskurve}
+   Bewertung     	= fread (fid,1,'char');		%{ 23} char;        {fÃ¼r Spektren : Bewertung als Buchstabe 'A'}
    HierEine0     	= fread (fid,1,'char');		%{ 24} byte;        {derzeit unbenutzt}
-   NormMax0dB    	= fread (fid,1,'char');		%{ 25} boolean;     {1 : Spektren und Leistung : 0dB = ¦Max¦}
+   NormMax0dB    	= fread (fid,1,'char');		%{ 25} boolean;     {1 : Spektren und Leistung : 0dB = Â¦MaxÂ¦}
    Yzoom         	= fread (fid,1,'char');		%{ 26} boolean;     {1 : Y-Bereich auf Maximum normieren}
    Xlog          	= fread (fid,1,'char');		%{ 27} boolean;     {1 : Spektren : Frequenz logarithmisch}
    Ylog          	= fread (fid,1,'char');		%{ 28} byte;        {YLog-Bits 1,2,4,8}
-   VersionsNr    	= fread (fid,1,'char');		%{ 29} byte;        {früher 0, jetzt 95}
+   VersionsNr    	= fread (fid,1,'char');		%{ 29} byte;        {frÃ¼her 0, jetzt 95}
    FFTnorm       	= fread (fid,1,'char');		%{ 30} byte;        {0 : Leistung, 1 Energie, 2 Passband}
    VoltageRange	= fread (fid,1,'float64');	%{ 31} float64;      {! max. Spannung im Zeitsignal}
-   Reserviert		= fread (fid,52,'schar');		%{ 39} array [0..52] of byte; {mit Nullen füllen}
+   Reserviert		= fread (fid,52,'schar');		%{ 39} array [0..52] of byte; {mit Nullen fÃ¼llen}
    Hun           	= fread (fid,1,'char');		%{ 91} byte;        {Hundertstel}
    Sec           	= fread (fid,1,'char');		%{ 92} byte;
    Min           	= fread (fid,1,'char');		%{ 93} byte;
@@ -79,22 +79,22 @@ else
    Year           	= fread (fid,1,'uint16'); %{ 97} word;        {Entstehungsdatum des Signals}
    Start           	= fread (fid,1,'int32');%{ 99} int32Int;     {(Nr-1) des ersten Wertes in Datei}
    XachsSchriftLen	= fread (fid,1,'char');	%{102} ?
-   XachsSchrift		= setstr(fread (fid,3,'char'));	%{103} string [3];  {Einheit an der X-Achse}
+   XachsSchrift		= char(fread (fid,3,'char'));	%{103} string [3];  {Einheit an der X-Achse}
    YachsSchriftLen	= fread (fid,1,'char');	%{105} ?
-   YachsSchrift		= setstr(fread (fid,3,'char'));	%{107} string [3];  {Einheit an der Y-Achse}
+   YachsSchrift		= char(fread (fid,3,'char'));	%{107} string [3];  {Einheit an der Y-Achse}
    Rand		    	= fread (fid,2,'int32');		%{111} LRint32Int;   {dargestellter X-Bereich}
    Cursor	    	= fread	(fid,2,'int32');		%{119} LRint32Int;   {Position der Cursorlinien}
    Grundlaufzeit 	= fread (fid,1,'float64');%{127} float64;      { [s] }
    %  d           		=				%{135} dBBlock;     {bestehend aus folgenden 3 Werten :
    OberkantdB		= fread (fid,1,'float64');	%{135} float64;       dB an der Oberkante
    Dynamik		= fread (fid,1,'float64');		%{143} float64;       Oberkante [db] - Unterkante [dB]
-   VoltBei0dB		= fread (fid,1,'float64');	%{151} float64;       Bezugsspannung für 0 dB}
-   LeftCursOld		= fread (fid,1,'uint16');	%{159} word;        {alt, für Signale bis Länge 65535}
-   RightCursOld		= fread (fid,1,'uint16');	%{161} word;        {alt, für Signale bis Länge 65535}
+   VoltBei0dB		= fread (fid,1,'float64');	%{151} float64;       Bezugsspannung fÃ¼r 0 dB}
+   LeftCursOld		= fread (fid,1,'uint16');	%{159} word;        {alt, fÃ¼r Signale bis LÃ¤nge 65535}
+   RightCursOld		= fread (fid,1,'uint16');	%{161} word;        {alt, fÃ¼r Signale bis LÃ¤nge 65535}
    AddaIdentLen		= fread (fid,1,'char');		%{} ?
-   ADDAident		= setstr(fread (fid,AddaIdentLen,'char'));	%{163} String [20]; {Quantisierung als ASCII-String}
+   ADDAident		= char(fread (fid,AddaIdentLen,'char'));	%{163} String [20]; {Quantisierung als ASCII-String}
    KommentarLen		= fread (fid,1,'char');		%{} ?
-   Kommentar		= setstr(fread (fid,KommentarLen,'char'));	%{184} String [71]; {Beliebiges Blabla}
+   Kommentar		= char(fread (fid,KommentarLen,'char'));	%{184} String [71]; {Beliebiges Blabla}
 
    if Kanalanzahl == 0
       Kanalanzahl = 1;

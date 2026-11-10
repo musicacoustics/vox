@@ -24,21 +24,21 @@ Infold.combicalc = 1;
 
 % FE mode init
 if isfe
-    if findstr(filename,'FE') > 0 & filename ~=  0
+    if ischar(filename) && contains(filename,'FE')
         PARAMANZ = 14;
         fnam = filename;
         fid  = fopen(filename);
         if fid == -1
             [errmsg, errnum] = ferror(fid);
             if errnum ~= 0
-                display(['1: ' errmsg]);
+                disp(['1: ' errmsg]);
             end
         else
             fid  = fopen(fnam);
             if fid>0
                 [errmsg, errnum] = ferror(fid);
                 if errnum ~= 0
-                    display(['2: ' errmsg]);
+                    disp(['2: ' errmsg]);
                 else
                     % dont know why i did this (basti)
                    % display([filename ' not found. so use: ' fnam]);
@@ -48,14 +48,14 @@ if isfe
             end
         end
         if errnum == 0
-            display(['using ' fnam ' as FE input file'])
+            disp(['using ' fnam ' as FE input file'])
             a    = fscanf(fid,'%f',[PARAMANZ inf]);
             fclose(fid);
             b    = a';
             time = max(b(:,1));
             TMAX = time;
         else
-            display('FE input file not found');
+            disp('FE input file not found');
             isfe = 0;
         end
     else
@@ -64,7 +64,7 @@ if isfe
 end
 
 % combicalc loop init
-n_samples = ceil(TMAX/1000*Fs);%mo: /1000 für ms
+n_samples = ceil(TMAX/1000*Fs);%mo: /1000 fÃ¼r ms
 t         = [0:n_samples-1]/Fs;   % time beam for graphic display
 kk        = 1;
 ik        = 1; % index of timestep in fe vector
@@ -127,7 +127,7 @@ if n_samples > 0
                 end
                 if t(ii) >=  time
                     ik  = ik + 1;
-                    display(['use fe step: ' sprintf('%4d', ik)]);
+                    disp(['use fe step: ' sprintf('%4d', ik)]);
                 end;              
             end;
         end;
@@ -136,18 +136,8 @@ if n_samples > 0
         % do it only once...combicalc init
         if ii ==  1
             %display('eins');
-            if get(Hndl.TractCalcMode, 'value') ==  1   % stairs calc.
-                fname = 'cs';
-            else
-                fname = 'ct';
-            end;
-            if get(Hndl.ModTract, 'value') ==  1   % modified tract
-                modflag = 'm';
-            else
-                modflag = '_';
-            end;
-            combi_filename = ['out' modflag fname SD_NAMES(2,7:8) num2str(Infold.register) ...
-                num2str(TRACH) num2str(FOLD) num2str(TRACT) num2str(NOISE) '  '];
+            % same name as vox('input') looks for (was built separately there)
+            combi_filename = [voxcombiname() '  '];
             control_init; % call script for initial parameter definitions
             timeindex = 1;  % initialize timeindex for batch
             if BATCH % called only once
@@ -165,7 +155,7 @@ if n_samples > 0
                 end
                 file(file ==  ' ') = []; % get rid of extra blanks in filename
                 try
-                    foldfile  = load(file);   % hier werden y, filename etc überschrieben!
+                    foldfile  = load(file);   % hier werden y, filename etc Ã¼berschrieben!
                     if foldfile.data.Fs ==  Fs    % file Fs = global Fs -> do nothing
                     elseif foldfile.data.Fs > Fs
                         disp('decimate vocal fold signal...');
@@ -192,43 +182,38 @@ if n_samples > 0
 
             % video stuff
             if noisemovflag
-                if ispc %mo
-                        Hndl.noisemov = avifile(['noisemov_' datetime '.avi'], 'fps',20, ...%%%%%%%%%%%
-                               'compression','Indeo5', 'quality',100);
-                else
-                        Hndl.noisemov = avifile(['noisemov_' datetime '.avi'], 'fps',20, ...%%%%%%%%%%%
-                               'compression','none');
-                end
-                %Hndl.noisemov = avifile(['noisemov_' datetime '.avi'], 'fps',20, ...
-                 %   'compression','none', 'quality',100);
+                % avifile has been removed: VideoWriter (find a free file name)
+                noisenum = voxnextnum(fullfile(WORKDIR, 'out'), 'noisemov_');   % counting could pick a number in use
+                Hndl.noisemov = VideoWriter(fullfile(WORKDIR, 'out', ['noisemov_' noisenum '.avi']), 'Motion JPEG AVI');
+                Hndl.noisemov.FrameRate = 20;
+                Hndl.noisemov.Quality   = 100;
+                open(Hndl.noisemov);
             end
 
             % initiate movie file
+            Hndl.movisgood  = -1;
+            Hndl.foldmovfig = '';
             if GRONF & MOV
-                % find free filename
-                avifiles   = dir('out/combimov_*.avi');
-                fanz       = size(avifiles, 1)+1;
-                datetime   = sprintf('%03d', fanz);
-                movfilename = ['out/combimov_' datetime '.avi'];
-                % make movie file
-                Hndl.movisgood = -1;
-                try 
-                    if ispc %mo
-                        Hndl.noisemov = avifile(['noisemov_' datetime '.avi'], 'fps',20, ...%%%%%%%%%%%
-                               'compression','Indeo5', 'quality',100);
-                    else
-                        Hndl.noisemov = avifile(['noisemov_' datetime '.avi'], 'fps',20, ...%%%%%%%%%%%
-                               'compression','none');
-                    end
-                    display(['initialized movie file: ' movfilename]);
+                % find free filename (above the highest combimov_*.avi/.fig;
+                % counting the files could pick a number in use)
+                movnum     = voxnextnum(fullfile(WORKDIR, 'out'), 'combimov_');   % was named datetime (hides the function)
+                movfilename = fullfile(WORKDIR, 'out', ['combimov_' movnum '.avi']);
+                % make movie file (avifile has been removed: VideoWriter);
+                % this created Hndl.noisemov before, so no frames were written
+                try
+                    Hndl.mov = VideoWriter(movfilename, 'Motion JPEG AVI');
+                    Hndl.mov.FrameRate = 20;
+                    Hndl.mov.Quality   = 100;
+                    open(Hndl.mov);
+                    disp(['initialized movie file: ' movfilename]);
                     Hndl.movisgood = 1;
-                catch
-                    display('could not init avifile');
+                catch err
+                    disp(['could not init movie file: ' err.message]);
                 end
-                Hndl.foldmovfig = ['combimov_' datetime '.fig'];
+                Hndl.foldmovfig = fullfile(WORKDIR, 'out', ['combimov_' movnum '.fig']);
             end
 
-            Hndl.mainwaitfigure = waitbar(0, 'Calculating combined fold/tract signal...');
+            Hndl.mainwaitfigure = voxwaitbar(0, 'Calculating combined fold/tract signal...');
 
             % why is this:
             BRK      = 0;
@@ -237,11 +222,11 @@ if n_samples > 0
         end   % of if combicalc init
 
 %        Hndl.mainwaitfigure = waitbar(ii/n_samples, Hndl.mainwaitfigure);
-        Hndl.mainwaitfigure = waitbar(ii/n_samples);
+        Hndl.mainwaitfigure = voxwaitbar(ii/n_samples);
 
         % makes it possible to end calculation
         if BRK
-            display('combibreak');
+            disp('combibreak');
             break
         end
         Infold.k = ii;      % parameter for foldsig
@@ -389,17 +374,21 @@ if n_samples > 0
                 end;
                 Infold.pin_gl_ac = pin_gl_ac;
             elseif   get(Hndl.TractCalcMode, 'Value') ==  2 % tube calc.
+                if BRK   % Break during the fold step: ctim2 would return
+                    disp('combibreak');   % without assigning its outputs
+                    break
+                end
                 areas3('tubecalc');
                 sizetubes = size(data.tubes,1);
                 [p_out_mouth, pin_gl_ac, PARCTIM] ...
                     = ctim2(data.tubes, 0, data.properties.damping, ii, PARCTIM, ...
                     out_vf_voc, PARNOISE);
-                y_out_all(:,ii) = PARCTIM.output_plus(1:sizetubes,1) + PARCTIM.input_minus(:);
+                y_out_all(:,ii) = PARCTIM.p_boundaries;   % tube ends, glottis to mouth (sizetubes+1)
                 if (GRONT ==  1) | (GRONT ==  4)
-                    if figflag('Wave propagation in the vocal tract',1) ==  1
+                    if voxfigflag('Wave propagation in the vocal tract',1) ==  1
                         set(0,'CurrentFigure',Hndl.voctractfig)
                         set(Hndl.voctractfig,'CurrentAxes',Hndl.voctractfigplot)
-                        waterfall(t(1:ii), 1:sizetubes, y_out_all);
+                        waterfall(t(1:ii), 1:sizetubes+1, y_out_all);
                         view(0,85)
                         grid off
                     else   % create figure
@@ -408,14 +397,15 @@ if n_samples > 0
                             'Position',[.5 .05 .5 .4]);
                         set(Hndl.voctractfig,'MenuBar', 'none');
                         Hndl.voctractfigplot = axes;
-                        waterfall(t(1:ii), 1:sizetubes, y_out_all);
+                        waterfall(t(1:ii), 1:sizetubes+1, y_out_all);
                         view(0,85)
                         grid off
                     end
                 end;
-                p_out_mouth       = y_out_all(sizetubes,ii);
+                % p_out_mouth from ctim2: pressure at the mouth end (was
+                % y_out_all(sizetubes,ii), the left end of the last tube)
                 data.out.t        = t(1:ii);
-                data.out.segments = 1:sizetubes;
+                data.out.segments = 1:sizetubes+1;
                 data.out.h        = y_out_all;
             elseif   get(Hndl.TractCalcMode, 'Value') ==  4 % import
                 [p_out_mouth, pin_gl_ac, PARTRACT] = tractsig(ii, ...
@@ -446,7 +436,7 @@ if n_samples > 0
             Vektor1 = [minareamm; rvocmm; out_y; glotnoise_vek; sum_uccm];
             Vektor2 = [out_vf_voc_vek; out_vf_trach_vek; pin_gl_ac_vek; ys0];
             Vector3 = Infold.w0lp(1);
-            if (figflag('Sound pressure during calculation',1) ==  1)&(ii>1)   %
+            if (voxfigflag('Sound pressure during calculation',1) ==  1)&(ii>1)   %
                 set(0,'CurrentFigure',Hndl.infofigure)
                 yaxe = Hndl.infofig.yaxe;
                 sig1 = Hndl.infofig.sig1;
@@ -470,7 +460,7 @@ if n_samples > 0
 %                 end
                 %label('p_{sup} (r), p_{sub} (g), p_{s0} (b) [Pa], A_{glot} [mm^2] (m)');
             else   % initialize output
-                if (figflag('Sound pressure during calculation',1) ==  1)
+                if (voxfigflag('Sound pressure during calculation',1) ==  1)
                     close(Hndl.infofigure);
                 end
                 Scrsize   = get(0,'Screensize');
@@ -503,13 +493,16 @@ if n_samples > 0
                 xlabel('Time [ms]');
                 set(get(yaxe(1),'Ylabel'),'String','A_{g} (k), A_{VT} (m) [mm^2], p_{m} (b), noise (c) [Pa], u (r) [mm^3/s]');
                 set(get(yaxe(2),'Ylabel'),'String','p^{g} (b), p_{g} (g), p_{in} (c), p_{s0} (k) [Pa]');
+                voxcolor(Hndl.infofigure);   % black (k) lines follow the theme
             end
         end; % of GRONs
     end; % end combicalc main loop
 
-    display('loop end');
+    disp('loop end');
     
-    close(Hndl.mainwaitfigure)
+    if ishghandle(Hndl.mainwaitfigure)   % vox('break') may have closed it already
+        close(Hndl.mainwaitfigure)
+    end
 
     % finish stuff
     BRK = 0;
@@ -522,18 +515,18 @@ if n_samples > 0
         
     % video stuff
     if noisemovflag
-        Hndl.noisemov = close(Hndl.noisemov);
+        close(Hndl.noisemov);   % VideoWriter close returns nothing
     end
 
     % close video file, otherwise we cannot open it
     if GRONF & MOV & Hndl.movisgood > 0
-        display('saved avifile');
-        Hndl.mov = close (Hndl.mov);
+        disp(['saved movie file: ' fullfile(Hndl.mov.Path, Hndl.mov.Filename)]);
+        close(Hndl.mov);
     end
     
     % save area function for later, when external forces is active
     guiname = 'external_forces_gui';        % name of gui
-    [isda]  = figflag(guiname, 1);
+    [isda]  = voxfigflag(guiname, 1);
     if isda
        Hndl.efgui     = openfig(guiname, 'reuse');
        handles        = guihandles(Hndl.efgui);
@@ -542,8 +535,8 @@ if n_samples > 0
        ef_duration    = get(handles.durationslider,  'Value')*100; % get value of duration in percent of f0
        if ef_force>0 && ef_duration>0
            areafilename   = ['externalforce_glottalarea_' sprintf('%g', ef_force*100) 'mN_'  sprintf('%g', ef_duration) 'percent.csv'];
-           csvwrite(areafilename, Infold.completeareafunction);
-           display(['wrote area function into file: ' areafilename]);
+           writematrix(Infold.completeareafunction, areafilename);   % csvwrite is not recommended
+           disp(['wrote area function into file: ' areafilename]);
        end
     end
     
@@ -568,7 +561,7 @@ if n_samples > 0
             %         end;
             %         data.suffix = suffix;
             %       combi_filename = [combi_filename data.suffix];
-            if findstr(filename,'FE') > 0 & filename ~=  0
+            if ischar(filename) && contains(filename,'FE')
                 combi_filename(5) = 'c';
                 combi_filename(6) = 'F';
                 combi_filename(14) = '_';
@@ -586,7 +579,7 @@ if n_samples > 0
         vox('input');
     end;
 else
-    display('there was a bug with samples calculation.');
+    disp('there was a bug with samples calculation.');
 end
 CALC = 0;
 setenable(CALC)

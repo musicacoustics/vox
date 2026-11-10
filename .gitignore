@@ -30,3 +30,6 @@ VOX/matlab/combimov_*.fig
 # Note: files already tracked stay tracked until removed once with
 #   git rm -r --cached VOX/matlab/out VOX/matlab/voxpath VOX/matlab/voxpath.mat
 VOX/matlab/out/
+
+# Parameter files written by the parameter mode (Para), e.g. parameters.mat
+VOX/matlab/para*.mat

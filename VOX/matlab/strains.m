@@ -39,11 +39,11 @@ sl = sv;
 if MAXM > 1
    for i=1:MAXM+1
       if abs(sl(1,i)) >= slmax | abs(sl(2,i)) >= slmax
-         error(['Die Simulation ist ungültig, da die Stimmbänder gerissen sind (Sl >= Slmax) sl: ' sprintf('%7.3f', sl(1,i))])
+         error(['Die Simulation ist ungÃ¼ltig, da die StimmbÃ¤nder gerissen sind (Sl >= Slmax) sl: ' sprintf('%7.3f', sl(1,i))])
       end
    end
 else
    if abs(sl(1,i)) >= slmax | abs(sl(1,i)) >= slmax
-      error(['Die Simulation ist ungültig, da die Stimmbänder gerissen sind (Sl >= Slmax) sl: ' sprintf('%7.3f', sl(1,i))])
+      error(['Die Simulation ist ungÃ¼ltig, da die StimmbÃ¤nder gerissen sind (Sl >= Slmax) sl: ' sprintf('%7.3f', sl(1,i))])
    end
 end

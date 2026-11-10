@@ -8,7 +8,7 @@ xmin = -3;
 zmax =  4;
 zmin = -2;
 NoColIndx = 1; %last Timestep without Collision
-if (figflag('Deflection of masses',1) == 1)&(size(Hndl.plotmassrec11,2) == MAXM)
+if (voxfigflag('Deflection of masses',1) == 1)&(size(Hndl.plotmassrec11,2) == MAXM)
     set(0,'CurrentFigure',Hndl.plotmassfig)
     plotedit(Hndl.plotmassfig,'off');
     plotedit(Hndl.plotmassfig,'hidetoolsmenu');
@@ -125,9 +125,17 @@ if (figflag('Deflection of masses',1) == 1)&(size(Hndl.plotmassrec11,2) == MAXM)
         set(Hndl.plotmassfig, 'units', 'normalized');
         sizex = posnsize(3)-(mod(posnsize(3), 4)); % make multiple of 4 because of indeo5 codec
         sizey = posnsize(4)-(mod(posnsize(4), 4)); % make multiple of 4 because of indeo5 codec
-        grabposnsize = [1 1 sizex sizey];
-        grabframe    = getframe(Hndl.plotmassfig, grabposnsize);
-        Hndl.mov     = addframe(Hndl.mov, grabframe);
+        % origin 0, not 1: [1 1 w h] reaches 1 pixel outside the figure,
+        % which getframe now rejects
+        grabposnsize = [0 0 sizex sizey];
+        try
+            grabframe    = getframe(Hndl.plotmassfig, grabposnsize);
+            writeVideo(Hndl.mov, grabframe);   % addframe has been removed
+        catch err   % e.g. window resized: frame size must stay constant
+            close(Hndl.mov);
+            Hndl.movisgood = -1;
+            warning('Movie stopped after a frame could not be written: %s', err.message);
+        end
     end
 
 else	% create figure
@@ -149,9 +157,8 @@ else	% create figure
             'Name','Deflection of masses', ...
             'Units','Normalized', ...
             'MenuBar', 'none',  ...
-            'Color', Hndl.voxMainBGColor, ...
             'Position',[Scrwidth-0.5 Scrheight-0.5 0.25 0.5]);
-        set(Hndl.plotmassfig,'DoubleBuffer','on');
+        % (DoubleBuffer removed: no effect since R2014b graphics)
 
         % set pos of window
         dockwindowPosSize = get(Hndl.figureNumber, 'Position');
@@ -251,5 +258,6 @@ else	% create figure
         'Position',btnPos, ...
         'HorizontalAlignment','center', ...
         'String','n/a');
+    voxcolor(Hndl.plotmassfig);   % black edge and zero lines follow the theme
 end
 inx=inx+1;

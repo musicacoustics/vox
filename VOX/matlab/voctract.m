@@ -107,8 +107,9 @@ elseif data.properties.radimp == 2
    plot(x,abs(f),'k-', w/pi*fmax,abs(hRm),'r-', w/pi*fmax,abs(hTm),'b-', ...
       x,real(f),'k:', w/pi*fmax,real(hRm),'r:', w/pi*fmax,real(hTm),'b:', ...
       x,imag(f),'k--', w/pi*fmax,imag(hRm),'r--', w/pi*fmax,imag(hTm),'b--');
-   legend('|Z|',' R ',' T ',4)
+   legend('|Z|',' R ',' T ','Location','southeast')   % numeric location 4 is an error now
    grid on
+   voxcolor(gca);   % black |Z| lines follow the theme
 
 end
 
@@ -135,14 +136,14 @@ pmr2.junction(1).time(1)=dirac;
 
 % start of calculus loop
 
-Hndl.voctractwaitbar = waitbar(0,'Calculating impulse response...');
+Hndl.voctractwaitbar = voxwaitbar(0,'Calculating impulse response...');
 
 BRK = 0;
 
 for z=1:loop
 
 %   waitbar(z/loop,Hndl.voctractwaitbar)
-    waitbar(z/loop)
+    voxwaitbar(z/loop)
 
    if BRK, break,        end
 
@@ -175,7 +176,7 @@ for z=1:loop
    end
 
    if GRONT
-      if figflag('Wave propagation in the vocal tract',1) == 1
+      if voxfigflag('Wave propagation in the vocal tract',1) == 1
          set(0,'CurrentFigure',Hndl.voctractfig)
          set(Hndl.voctractfig,'CurrentAxes',Hndl.voctractfigplot)
          waterfall(t(1:z), 1:lastj, h_calc_all);
@@ -287,4 +288,6 @@ out.segments  = 1:lastj;
 out.h                = h_calc_all;
 y             = h_calc_out;
 z             = z_calc_out;
-close(Hndl.voctractwaitbar)
+if ishghandle(Hndl.voctractwaitbar)   % vox('break') may have closed it already
+   close(Hndl.voctractwaitbar)
+end

@@ -47,9 +47,10 @@ switch action
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
         % Set all the initial variables values
         Fs        = 22050;% Sampling rate
-        rho       = 1.293;% [kg/m^2] at 20°C
-        c         = 350;  % [m/s] at 25°C
-        TMAX      = 5000;    % Duration of signal [ms]
+        rho       = 1.293;% [kg/m^2] at 20Â°C
+        c         = 350;  % [m/s] at 25Â°C
+        TMAX      = voxduration(1);  % Duration of signal [ms] (was 5000); default
+                                     % of each Input mode, see voxduration
         XI        = 0.135;% Damping of wave propagation in ctim2
         Xi0       = 0.005135;   % constant for damping in tractsig
         GRONF     = 1;      % Flag for graphic display of fold results
@@ -95,7 +96,7 @@ switch action
             '/_a/ (hod)','/ea/ (head)','/ae/ (had)','/_o/ (hoe)',...
             '/uu/ (hood)','/aa/ (ton)' ,'/_i/ (hid)','/ao/ (paw)',...
             '/o1/ (oF6)' ,'/o2/ (oG6)','/o3/ (oA6)','/o4/ (oC7)',...
-            '/i_/ (BJK)' ,'/e_/ (BJK)','/ä_/ (BJK)','/a_/ (BJK)',...
+            '/i_/ (BJK)' ,'/e_/ (BJK)','/Ã¤_/ (BJK)','/a_/ (BJK)',...
             '/o_/ (BJK)','/u_/ (BJK)','/cy/ (10mm)');
         vowel       = 3;      % default start vowel 3:/_a/, 8:/aa/
         filevalue   = 1;
@@ -118,16 +119,15 @@ switch action
         % check working directory
         WORKDIR = fileparts(mfilename('fullpath')); % folder of vox.m (replaces voxpath.mat, works on every computer)
         cd(WORKDIR);
-        outdirmissed = length(dir('out'));
-        if (outdirmissed ==  0)
-            state = mkdir('out'); % create subdirectory "out"
-            if (state ==  1)|(state ==  2)
-                cd('out');            % change working directory to "out"
-                LASTPATH = [WORKDIR,'\out'];
-            else
-                error('Could not create subdirectory ''out''!');
-            end;
-        end;
+        if ~isfolder(fullfile(WORKDIR, 'out'))
+            [state, msg] = mkdir(fullfile(WORKDIR, 'out')); % create subdirectory "out"
+            if ~state
+                error('Could not create subdirectory ''out'': %s', msg);
+            end
+        end
+        % stay in WORKDIR: VOX is not on the MATLAB path and finds its
+        % functions only from here
+        LASTPATH = fullfile(WORKDIR, 'out');
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
         % for external forces
@@ -136,26 +136,28 @@ switch action
         Infold.extForceF0inSamples = 0;
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
-        % für Parameterbetrieb
+        % fÃ¼r Parameterbetrieb
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
-        try
-            if strcmp(var(1:4),'para')
+        if nargin >= 2 && strncmp(var, 'para', 4)   % was: try ... var(1:4) ... without catch
+            try
                 paramfig = findobj('Name','Parametermode');
                 handles  = guihandles(paramfig);
                 filename = get(handles.ed_filename,'String');
                 parapath = get(handles.ed_filepath,'String');
 
-                if findstr(filename,'FE') > 0  & filename ~=  0
+                if ischar(filename) && contains(filename,'FE')
                     parapath = pwd;
-                    load([parapath,'\samplepara.mat']);
+                    load(fullfile(parapath,'samplepara.mat'));
                 else
-                    load([parapath,filename]);
+                    load(fullfile(parapath,filename));   % parapath may lack a trailing separator
                 end;
                 i = get(paramfig,'Userdata');
                 [data,Infold,PARA,BATCH,FOLD,TRACH,TRACT,NOISE,vowel,iniinput,TVAKT,PTG,TMAX,Fs,MAXSEGMENTS,...
                     MAXDEVLIMIT,XI,Xi0,MAXM,GRON] ...
                     = eval([var '(PARA,BATCH,FOLD,TRACH,TRACT,NOISE,vowel,iniinput,TVAKT,PTG,TMAX,Fs,' ...
                     'MAXSEGMENTS,MAXDEVLIMIT,XI,Xi0,MAXM,GRON,datas(i),i);']);
+            catch err
+                warning('Parameter mode: could not use the parameter file: %s', err.message);
             end
         end
 
@@ -165,6 +167,7 @@ switch action
         if PARA
             PARA = 1;
         else
+            voxclosefunc;   % windows of an earlier VOX session would use the new handles and fail
             Hndl = voxgui(Fs,TMAX,PTG,TVAKT,MODAL,HEAD,FALSETT,MODFOLD,MODTRACT,TRACH,FOLD, ...
                 TRACT,NOISE,GRONF,SURFS,GRONT,popupStr,BG,FMAX,BATCH,initractcalcmode,TRACTDISP,vowel,filevalue,iniinput, ...
                 SD_NAMES,SD_DISP,SD_PLOTCMD,GRON,FEswitch,MOV,VIBRO);
@@ -383,10 +386,7 @@ switch action
                 data.y  = y(:)';
                 data.Fs = Fs;
             end;
-            try
-                TMAX = data.Tmax;
-                vox('refreshDuration','strsli');
-            end
+            % loading a file does not change the Duration field (was TMAX = data.Tmax)
             data.filename = filename;
             data.pathname = pathname;
             Infold = data.Infold;%mo
@@ -398,7 +398,7 @@ switch action
                 set(Hndl.surfs,       'Enable', 'on')
                 %figdata.OldData = 0;
             catch
-                display('No figure data in file');
+                disp('No figure data in file');
                 try
                     close figure 60;
                 end
@@ -488,33 +488,30 @@ switch action
             %dialog + set filename and pathname
             [fileName, pathName] = uiputfile('*.avi','Save .avi file');
             %avifiles   = dir('out/foldmov_*.avi');
-            %if (fileName == 0 && pathName == 0)
+            Hndl.movisgood  = -1;
+            Hndl.foldmovfig = '';
+            if ~ischar(fileName)
                 %avi file creation canceled by user
-                %display('avi file creation canceled');
-                %Hndl.movisgood = -1;
-            %else
-                cd (pathName);
-                avifiles   = dir('pathName');
-                fanz       = size(avifiles, 1)+1;
-                datetime   = sprintf('%03d', fanz);
+                disp('movie file creation cancelled');
+            else
+                % no cd(pathName): VOX finds its functions only in WORKDIR
+                % number above the highest foldmov_*: counting the files
+                % could pick a number in use (gaps) and overwrite that figure
+                movnum     = voxnextnum(pathName, 'foldmov_');   % was named datetime, which hid the datetime function in vox
                 %movfilenam = ['out/foldmov_' datetime '.avi'];
-                movfilename = fileName;
-                % make movie file
-                Hndl.movisgood = -1;
+                movfilename = fullfile(pathName, fileName);
+                % make movie file (avifile/addframe have been removed: VideoWriter)
                 try
-                    if ispc
-                        Hndl.mov = avifile([movfilename], 'fps',20, ...%%%%%%%%%%%
-                               'compression','Indeo5', 'quality',100);
-                    else
-                        Hndl.mov = avifile([movfilename], 'fps',20, ...%%%%%%%%%%%
-                               'compression','none');
-                    end
+                    Hndl.mov = VideoWriter(movfilename, 'Motion JPEG AVI');
+                    Hndl.mov.FrameRate = 20;
+                    Hndl.mov.Quality   = 100;
+                    open(Hndl.mov);
                     Hndl.movisgood = 1;
-                catch
-                     display('could not init avifile');
+                catch err
+                    disp(['could not init movie file: ' err.message]);
                 end
-                Hndl.foldmovfig = ['foldmov_' datetime '.fig'];
-            %end
+                Hndl.foldmovfig = fullfile(pathName, ['foldmov_' movnum '.fig']);
+            end
         end
 
         % (no access to the parameters from outside the function)
@@ -622,7 +619,7 @@ switch action
             data = get(Hndl.figureNumber, 'UserData');
             vowel = get(Hndl.VOWEL,'value');
 
-            if figflag('Design of VT area function',1) ==  0
+            if voxfigflag('Design of VT area function',1) ==  0
                 Scrsize   = get(0,'Screensize');
                 Scrwidth  = Scrsize(3);
                 Scrheight = Scrsize(4);
@@ -669,7 +666,9 @@ switch action
                     modechar = 'fg';
                 end;
             end;
-            close(Hndl.ModTractFig);
+            if isfield(Hndl, 'ModTractFig') && ishghandle(Hndl.ModTractFig)   % window may have been closed by the user
+                close(Hndl.ModTractFig);
+            end
         end;
         if ~CALC
             vox('input');
@@ -701,6 +700,10 @@ switch action
                 areas3('refresh');
             end;
             set(Hndl.TractDispMode,'String',char('FRF','Imp-m','Imp-g'));
+            % 3 entries here, 4 in File mode: keep the selected display valid
+            if TRACTDISP ==  2, TRACTDISP = 1; end   % FRF-glottis exists only in File mode
+            dispentry = [1 1 2 3];                    % TRACTDISP -> entry
+            set(Hndl.TractDispMode,'Value',dispentry(TRACTDISP));
         elseif get(Hndl.TractCalcMode,'value') ==  2 % Tube segments
             data.properties.mode = 2;
             if get(Hndl.ModTract,'value') ==  1       % modified vowel
@@ -715,9 +718,16 @@ switch action
                 areas3('refresh');
             end;
             set(Hndl.TractDispMode,'String',char('FRF  ','Imp-m','Imp-g'));
+            % 3 entries here, 4 in File mode: keep the selected display valid
+            if TRACTDISP ==  2, TRACTDISP = 1; end   % FRF-glottis exists only in File mode
+            dispentry = [1 1 2 3];                    % TRACTDISP -> entry
+            set(Hndl.TractDispMode,'Value',dispentry(TRACTDISP));
 
         elseif get(Hndl.TractCalcMode,'value') ==  3 % File
             data.properties.mode = 3;
+            % 4 entries in File mode, entry = TRACTDISP (set before reading the value)
+            set(Hndl.TractDispMode,'String',char('FRF-m','FRF-g','Imp-m','Imp-g'), ...
+                'Value',TRACTDISP);
             if get(Hndl.TractDispMode,'value') ==  1   % FRF-mouth
                 SD_NAMES(2,1:6) = 'out_fm';
             elseif get(Hndl.TractDispMode,'value') ==  2   % FRF-glottis
@@ -728,7 +738,6 @@ switch action
             elseif get(Hndl.TractDispMode,'value') ==  4   % Imp-glottis
                 SD_NAMES(2,1:6) = 'outzfg';
             end;
-            set(Hndl.TractDispMode,'String',char('FRF-m','FRF-g','Imp-m','Imp-g'));
         elseif get(Hndl.TractCalcMode,'value') ==  4 % import
             data.properties.mode = 4;
             SD_NAMES(2,1:6) = 'out_im';
@@ -764,7 +773,7 @@ switch action
                 SD_NAMES(2,1:6) = 'outzfm';
             elseif get(Hndl.TractDispMode,'value') ==  4  % Imp-glottis
                 TRACTDISP = 4;
-                SD_NAMES(2,1:6) = 'outzfm';
+                SD_NAMES(2,1:6) = 'outzfg';
             end
         else    % stairs or tubes
             if get(Hndl.TractDispMode,'value') ==  1      % FRF
@@ -798,24 +807,47 @@ switch action
             end;
         end;
         %cd('d:\projects\vox\out\');
-        cd(WORKDIR);
-        cd('out');
-        [filename, pathname] = uigetfile(['out' modechar '*.mat'], 'choose input tract file');
-        if filename ~=  0
+        % do not change the working folder (VOX finds its functions only in
+        % WORKDIR); start the dialog in out/ instead
+        [filename, pathname] = uigetfile(fullfile(WORKDIR, 'out', ['out' modechar '*.mat']), 'choose input tract file');
+        if ischar(filename)
+            filename = filename(1:(length(filename)-4));
+            src = fullfile(pathname, [filename '.mat']);
+            % vox('input') loads SD_NAMES(value,:) from the working folder:
+            % copy the file there as it is (also the old format with Fs, y),
+            % but do not silently replace a different file of that name,
+            % e.g. the own result out_st_a when out/out_st_a.mat is chosen
+            dst = [deblank(filename(1:min(end, 15))) '.mat'];
+            if isfile(dst) && ~isequaln(load(src), load(dst))
+                answer = questdlg(['The VOX folder already contains a different "' dst ...
+                    '". Replace it with the selected file?'], 'Load tract file', ...
+                    'Replace', 'Cancel', 'Cancel');
+                if strcmp(answer, 'Replace')
+                    copyfile(src, dst);
+                else
+                    filename = 0;   % keep the existing file, load nothing
+                end
+            elseif ~isfile(dst)
+                copyfile(src, dst);
+            end
+        end
+        if ischar(filename)
             value = 2; % set 2 entry as file entry
             set(Hndl.TractCalcMode, 'Value', 3);
-            filename = filename(1:(length(filename)-4));
-            load([pathname filename]);
+            S = load(src);
+            if isfield(S, 'data')
+                data = S.data;
+            else   % old format: only the signal (as vox('input') reads it)
+                data.Fs = S.Fs;
+                data.y  = S.y(:)';
+            end
             while length(filename) < 16
                 filename(end+1) = ' ';
             end
             SD_NAMES(value,:) = [filename(1:15)];
             data.filename = filename;
             data.pathname = pathname;
-            try
-                TMAX = data.Tmax;
-                vox('refreshDuration','strsli');
-            end
+            % loading a file does not change the Duration field (was TMAX = data.Tmax)
             save(['out_' modechar 'fi'],'data');
             set(Hndl.TractCalc, 'enable', 'off');
             set(Hndl.INPUT, 'value', 2);
@@ -830,10 +862,11 @@ switch action
         %  value = 2;
         %  data = get(Hndl.figureNumber, 'UserData');
         %  set(Hndl.VOWEL, 'Value', 12);
+        stamp = char(datetime('now', 'Format', 'yyyyMMdd_HHmmss'));   % datetime is a function, not text
         if get(Hndl.TractCalcMode,'value') ==  1   % Stair segments
-            initfile = ['out_st' datetime '.mat'];
+            initfile = ['out_st' stamp '.mat'];
         else
-            initfile = ['out_tt' datetime '.mat'];
+            initfile = ['out_tt' stamp '.mat'];
         end;
         [filename, pathname] = uiputfile(initfile, 'choose output tract file');
         if filename ~=  0
@@ -867,7 +900,7 @@ switch action
             data.out.t = PARCTIM.out.t;
             data.out.segments = PARCTIM.out.segments;
             data.out.h = PARCTIM.out.y;
-            data.Fs = Fs;
+            data.Fs = PARCTIM.out.Fs;   % internal rate of ctim2 (multiple of Fs), as voctract
             data.Tmax = max(data.out.t);
         end;
         if QUIT ==  0
@@ -906,18 +939,23 @@ switch action
         GRONT = get(Hndl.gront,'value')-1;
         data  = get(Hndl.figureNumber, 'UserData');
         if GRONT ==  1
-            try
-                a = data.out;   % check if data.out exists
-                Hndl.tractGrontFig = figure('Name', 'Waterfall',...
-                    'Units', 'Normalized',...
-                    'Position', [0.51 0.5 0.48 0.48]);
-                waterfall(data.out.t, data.out.segments, data.out.h);
-            catch
-                warning('No graphics data available!')
+            % show the waterfall of the last tract result; without one (none yet, or
+            % a calculation is running) it is drawn during the next tract calculation
+            if isfield(data, 'out') && all(isfield(data.out, {'t', 'segments', 'h'}))
+                try
+                    Hndl.tractGrontFig = figure('Name', 'Waterfall',...
+                        'Units', 'Normalized',...
+                        'Position', [0.51 0.5 0.48 0.48]);
+                    waterfall(data.out.t, data.out.segments, data.out.h);
+                catch err
+                    warning('Waterfall plot not possible: %s', err.message);
+                end
+            else
+                disp('Waterfall: no tract result yet; it is drawn during the tract calculation.');
             end
         elseif GRONT ==  2 % nothing?
         elseif GRONT ==  0 % close graphics window
-            try
+            if isfield(Hndl, 'tractGrontFig') && ishghandle(Hndl.tractGrontFig)
                 close(Hndl.tractGrontFig);
             end
         end
@@ -945,6 +983,22 @@ switch action
 
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
+        % INPUT popup callback: the user chose a mode (upper right). Set its
+        % default duration (voxduration), then load and show its result.
+        % Only here: vox('input') also runs after calculations, loads and
+        % configuration changes (fold/tract/noise/trach, register, vowel,
+        % Load buttons), which load the matching result but keep the
+        % Duration field.
+    case 'inputselect'
+        ms = voxduration(get(Hndl.INPUT, 'Value'));
+        if ~isempty(ms) && ~PARA && ~IMPORT
+            TMAX = ms;
+            vox('refreshDuration','strsli');
+        end
+        vox('input');
+
+
+        % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
         % INPUT callback.
     case 'input'
@@ -967,7 +1021,7 @@ switch action
             set(Hndl.ctrl,       'Enable', 'off')
             set(Hndl.FE,         'Enable', 'off')
             set(Hndl.combiload,  'Enable', 'off')
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
@@ -978,7 +1032,7 @@ switch action
             set(Hndl.ctrl,        'Enable', 'off')
             set(Hndl.FE,          'Enable', 'off')
             set(Hndl.combiload,   'Enable', 'off')
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
@@ -993,7 +1047,7 @@ switch action
             set(Hndl.ctrl,        'Enable', 'off')
             set(Hndl.FE,          'Enable', 'off')
             set(Hndl.combiload,   'Enable', 'off')
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
@@ -1002,11 +1056,13 @@ switch action
                 SD_NAMES(value,5:15) = ['c' 'F' SD_NAMES(2,7:8) num2str(Infold.register) ...
                     num2str(TRACH) num2str(FOLD) num2str(TRACT) num2str(NOISE) '  '];
             else
-                if filename ~=  0
+                % the vowel of a loaded combi file (combiload); filename is also
+                % set by fold calc, tract calc, dialogs etc., so check that it is one
+                % (with 'out_vf_n10000' the vowel became '_n' and nothing was found)
+                if ischar(filename) && numel(filename) >= 8 && startsWith(filename, {'out_c', 'outmc'})
                     SD_NAMES(2,7:8) = filename(7:8);
                 end
-                SD_NAMES(value,5:15) = ['c' 's' SD_NAMES(2,7:8) num2str(Infold.register) ...
-                    num2str(TRACH) num2str(FOLD) num2str(TRACT) num2str(NOISE) '  '];
+                SD_NAMES(value,:) = sprintf('%-15s', voxcombiname());   % same name as combicalc saves under
             end;
             set(Hndl.FoldCalc,    'Enable', 'off')
             set(Hndl.TractCalc,   'Enable', 'off')
@@ -1015,7 +1071,7 @@ switch action
             set(Hndl.FE,          'Enable', 'on')
             set(Hndl.combiload,   'Enable', 'on')
 
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes','import');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
@@ -1024,16 +1080,16 @@ switch action
             set(Hndl.TractCalc,   'Enable', 'off')
             set(Hndl.combi,       'Enable', 'off')
             set(Hndl.ctrl,        'Enable', 'off')
-            if figflag('Design of VT area function',1)
+            if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
         end;
 
         % check for FE mode
-        if findstr(filename,'FE') > 0 & filename ~=  0
+        if ischar(filename) && contains(filename,'FE')
             PARA = 1;
-        elseif findstr(filename,'out_cF') > 0 & filename ~=  0
+        elseif ischar(filename) && contains(filename,'out_cF')
             PARA = 1;
         else
             PARA = 0;
@@ -1105,15 +1161,15 @@ switch action
                 try
                     data.t = (0:length(data.y)-1)/data.Fs;
                 end
-                try
-                    TMAX = data.Tmax;
-                catch
+                % length of the displayed signal; it does not change the
+                % Duration field any more (was TMAX = data.Tmax)
+                if ~isfield(data, 'Tmax')
                     try
                         data.Tmax = max(data.t)*1000;
-                        TMAX = data.Tmax;
+                    catch err
+                        disp(['signal without time vector: ' err.message]);
                     end
                 end
-                vox('refreshDuration','strsli');%mo
                 if (get(Hndl.TractCalcMode,'value') ==  3)  % file
                     if (TRACTDISP ==  1 | TRACTDISP ==  2) % FRF - mouth
                         data.z = 0;    % only the y-vector is usefull
@@ -1121,7 +1177,6 @@ switch action
                         data.y = 0; % only the z-vector is usefull
                         data.t = (0:length(data.z)-1)/data.Fs;
                         data.Tmax = max(data.t)*1000;
-                        TMAX = data.Tmax;
                     end
                 end
                 set(Hndl.figureNumber,'UserData',data);
@@ -1149,14 +1204,14 @@ switch action
                 COF = 0;
             end; % of try - catch
         elseif PARA
-            if findstr(filename,'out_cF') > 0 & filename ~=  0
+            if ischar(filename) && contains(filename,'out_cF')
                 file = filename;
             elseif get(Hndl.FE, 'value') ==  1;
                 file = SD_NAMES(value,:);
                 file(14) = '_';
                 file(15:17) = filename(3:5);
                 file(file ==  ' ') = []; % get rid of extra blanks in filename
-            elseif findstr(filename,'FE') > 0 & filename ~=  0
+            elseif ischar(filename) && contains(filename,'FE')
                 file = filename;
             end;
             try
@@ -1193,15 +1248,15 @@ switch action
                 try
                     data.t = (0:length(data.y)-1)/data.Fs;
                 end
-                try
-                    TMAX = data.Tmax;
-                catch
+                % length of the displayed signal; it does not change the
+                % Duration field any more (was TMAX = data.Tmax)
+                if ~isfield(data, 'Tmax')
                     try
                         data.Tmax = max(data.t)*1000;
-                        TMAX = data.Tmax;
+                    catch err
+                        disp(['signal without time vector: ' err.message]);
                     end
                 end
-                vox('refreshDuration','strsli');%mo
                 set(Hndl.figureNumber,'UserData',data);
                 n = SD_DISP;
                 eval([SD_PLOTCMD(n,:)]);  % call to plot_tuf,plot_puf or plot_spec
@@ -1324,13 +1379,9 @@ switch action
                 file(file ==  ' ') = []; % get rid of extra blanks in filename
                 %      save(file, 'data')
                 data.t = (0:length(data.y)-1)/data.Fs;
-                try
-                    TMAX = data.Tmax;
-                catch
+                if ~isfield(data, 'Tmax')   % does not change the Duration field any more
                     data.Tmax = max(data.t)*1000;
-                    TMAX = data.Tmax;
                 end
-                vox('refreshDuration','strsli');%mo
                 set(Hndl.figureNumber,'UserData', data);
                 n = SD_DISP;
                 eval([SD_PLOTCMD(n,:)]);
@@ -1354,15 +1405,14 @@ switch action
             if filename ~=  0
                 LASTPATH = pathname;
                 filename = filename(1:(length(filename)-4));
-                Fsglobal = Fs;   % save global Fs in case of old mat file
-                load([pathname filename]);
+                S = load([pathname filename]);
                 if length(filename)>15
                     filename = [filename(1:12) '...'];
                 end;
-                if exist('data') ~= 1
-                    data.Fs = Fs;
-                    data.y  = y(:)';
-                    Fs = Fsglobal;   % write back global Fs
+                if isfield(S,'data')
+                    data = S.data;
+                else   % old format: only the signal (not the GUI data with an old z)
+                    data = struct('Fs', S.Fs, 'y', S.y(:)');
                 end;
                 data.pathname = pathname;
                 data.filename = filename;
@@ -1378,7 +1428,8 @@ switch action
             [filename, pathname] = uigetfile('*.wav', 'choose input file');
             if filename ~=  0
                 %      LASTPATH = data.pathname;
-                [data.y, data.Fs, nbits] = wavread([pathname filename]);
+                data = struct();   % only the signal goes to last_filename, not the GUI data
+                [data.y, data.Fs] = audioread(fullfile(pathname, filename));   % wavread has been removed
                 numch = size(data.y,2);
                 if numch > 1
                     ButtonName = questdlg('Which channel?', ...
@@ -1409,9 +1460,13 @@ switch action
         end;
 
         if value ==  7   % load Monkey forest dat file
-            cd(LASTPATH);
-            [data.filename, data.pathname] = uigetfile('*.dat', 'choose input file');
-            if data.filename ~=  0
+            startdir = LASTPATH;   % start the dialog there, do not cd
+            if isempty(startdir) || ~isfolder(startdir)
+                startdir = WORKDIR;
+            end
+            data = struct();   % only the signal goes to last_filename, not the GUI data
+            [data.filename, data.pathname] = uigetfile(fullfile(startdir, '*.dat'), 'choose input file');
+            if ischar(data.filename)
                 LASTPATH = data.pathname;
                 [data.Fs, data.y] = read_dat([data.pathname data.filename]);
                 numch = size(data.y,1);
@@ -1442,20 +1497,59 @@ switch action
 
         if value ==  8   % load last filename
 
-            load('last_filename')
-            data.t = (0:length(data.y)-1)/data.Fs;
-            set(Hndl.figureNumber,'UserData',data);
-            n = SD_DISP;
-            eval([SD_PLOTCMD(n,:)]);
-            title(['"', strrep(data.filename, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
+            if isfile(fullfile(WORKDIR, 'last_filename.mat'))
+                L = load(fullfile(WORKDIR, 'last_filename.mat'), 'data');
+                % replace only the signal: the model data (radius, properties,
+                % ...) must stay for Tract Calc; drop the impedance and the
+                % internal signals (out, shown by GRON/waterfall) of the
+                % previous result
+                data = get(Hndl.figureNumber,'UserData');
+                data = rmfield(data, intersect({'z', 'out'}, fieldnames(data)));
+                for fn = fieldnames(L.data)'
+                    data.(fn{1}) = L.data.(fn{1});
+                end
+                data.t = (0:length(data.y)-1)/data.Fs;
+                set(Hndl.figureNumber,'UserData',data);
+                n = SD_DISP;
+                eval([SD_PLOTCMD(n,:)]);
+                title(['"', strrep(data.filename, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
+            else   % nothing loaded yet: empty plot with a message, as for missing calc files
+                data = get(Hndl.figureNumber,'UserData');
+                data = rmfield(data, intersect({'z', 'out'}, fieldnames(data)));   % they belong to the previous signal
+                data.y = [-1 1 0 -1 0 1 -1];
+                data.Fs = 1;
+                data.t = (0:length(data.y)-1)/data.Fs;
+                set(Hndl.figureNumber,'UserData',data);
+                n = SD_DISP;
+                eval([SD_PLOTCMD(n,:)]);
+                title('no file loaded yet - choose *.mat, *.wav or *.dat');
+            end
         end;
 
         if value ==  9   % load last recorded signal
-            load('recorded')
-            set(Hndl.figureNumber,'UserData',data);
-            n = SD_DISP;
-            eval([SD_PLOTCMD(n,:)]);
-            title(['"', strrep(data.filename, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
+            if isfile(fullfile(WORKDIR, 'recorded.mat'))
+                L = load(fullfile(WORKDIR, 'recorded.mat'), 'data');
+                % replace only the signal, keep the model data (see LastFile)
+                data = get(Hndl.figureNumber,'UserData');
+                data = rmfield(data, intersect({'z', 'out'}, fieldnames(data)));
+                for fn = fieldnames(L.data)'
+                    data.(fn{1}) = L.data.(fn{1});
+                end
+                set(Hndl.figureNumber,'UserData',data);
+                n = SD_DISP;
+                eval([SD_PLOTCMD(n,:)]);
+                title(['"', strrep(data.filename, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
+            else   % nothing recorded yet
+                data = get(Hndl.figureNumber,'UserData');
+                data = rmfield(data, intersect({'z', 'out'}, fieldnames(data)));   % they belong to the previous signal
+                data.y = [-1 1 0 -1 0 1 -1];
+                data.Fs = 1;
+                data.t = (0:length(data.y)-1)/data.Fs;
+                set(Hndl.figureNumber,'UserData',data);
+                n = SD_DISP;
+                eval([SD_PLOTCMD(n,:)]);
+                title('nothing recorded yet - press REC');
+            end
         end;
 
         Fs = get(Hndl.Fs, 'value');
@@ -1528,7 +1622,7 @@ switch action
         end
 
         % refresh Controlfile window
-        if figflag('controlfile',1) ==  1   %
+        if voxfigflag('controlfile',1) ==  1   %
            % data = get(Hndl.figureNumber, 'UserData');
             try
                 controlfile('refresh');
@@ -1544,8 +1638,6 @@ switch action
         if get(Hndl.gron, 'value') ==  1;
             vox('gron');
         end;
-
-
 
         % END of INPUT callback section
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
@@ -1587,7 +1679,7 @@ switch action
             filevalue   = get(Hndl.PARAM,'Value');
             name        = char(outfilename(filevalue));
             COF = 1;
-            if findstr(name,'FE') > 0 & name ~=  0
+            if ischar(name) && contains(name,'FE')
                 filename = name;
                 PARA     = 1;
                 count    = 1;
@@ -1637,7 +1729,11 @@ switch action
         set(Hndl.figureNumber,'pointer','watch');
         try,
             N = ceil(get(Hndl.Duration, 'value')/1000*Fs);
-            y = wavrecord(N, Fs, 1, 'double');
+            % wavrecord(N, Fs, 1, 'double') has been removed: record mono, 16 bit
+            rec = audiorecorder(Fs, 16, 1);
+            recordblocking(rec, N/Fs);
+            y = getaudiodata(rec, 'double');
+            y = [y(1:min(N, end)); zeros(N - min(N, numel(y)), 1)];   % exactly N samples, as before
             y = y';
             t = (0:length(y)-1)/Fs;
             data.y = y;
@@ -1652,7 +1748,8 @@ switch action
             %        'Fs = ', num2str(data.Fs) 'Hz']);
             set(Hndl.INPUT, 'value', 9);
             vox('input');
-        catch
+        catch err
+            warning('Recording failed: %s', err.message);   % was silently ignored
         end
         set(Hndl.figureNumber,'pointer','arrow');
         % END of Record callback section
@@ -1683,12 +1780,12 @@ switch action
             files       = dir;
             [reng, col] = size(files);
             ii = 1;
-            for r = 1:size(files)
+            for r = 1:numel(files)   % 1:size(files) is an error for a size vector
                 list(r,1) = {files(r).name};
                 list1(r,1:length(list{r})) = list{r};
                 if r >=  3
                     fnam = files(r).name;
-                    if fnam(1:2) ==  ['FE']
+                    if startsWith(fnam, 'FE')   % fnam(1:2) failed for names shorter than 2
                         list3(1, ii) = {fnam};
                         ii = ii + 1;
                         found = true;
@@ -1705,7 +1802,7 @@ switch action
                 fnnn        = outfilename(filevalue);
                 filename    = char(fnnn);
             else
-                display('no FE files found.');
+                disp('no FE files found.');
             end
         else
             FEswitch = 0;
@@ -1721,8 +1818,11 @@ switch action
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
     case 'combiload'
-        [filename, pathname] = uigetfile('****c*.mat', 'choose combi input file');
-        vox('input');
+        [loadname, pathname] = uigetfile('****c*.mat', 'choose combi input file');
+        if ischar(loadname)   % dialog not cancelled
+            filename = loadname;
+            vox('input');
+        end
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
         % Fold callback.
     case 'fold'
@@ -1763,6 +1863,7 @@ switch action
         else
             NOISE = 0;
         end;
+        set(Hndl.INPUT, 'value', 4);   % show the combi result, as fold/tract/trach do
         if ~CALC
             vox('input');
         end
@@ -1782,7 +1883,7 @@ switch action
         if get(Hndl.gron, 'value') ==  1;
             GRON = 1;
             if ~CALC
-                if figflag('Sound pressure during calculation',1) ==  1   %
+                if voxfigflag('Sound pressure during calculation',1) ==  1   %
                     set(0,'CurrentFigure',Hndl.infofigure)
                 else   % initialize output
                     Scrsize   = get(0,'Screensize');
@@ -1860,7 +1961,7 @@ switch action
                displaycontforc;
                displayimpuls;
            catch
-               display('No figure data present (old file format)');
+               disp('No figure data present (old file format)');
                set(Hndl.surfs,       'Enable', 'off')
            end
        end
@@ -1877,22 +1978,22 @@ switch action
                 surf(figdata.vibro', 'linestyle', 'none');
                 axis([1 length(figdata.vibro) 1 size(figdata.vibro,2)])
                 %Calculations for Colormap
+                cMap=zeros(100,3);   % n x 3 in both cases (was 100 x 1 without negative values)
                 if min(min(figdata.vibro)) < 0 %negative values exist
-                    cMap=zeros(100,3);
                     per=(max(max(figdata.vibro))+abs(min(min(figdata.vibro))))/100;
                     upper=round(max(max(figdata.vibro))/per);
-                    lower=round(abs(min(min(figdata.vibro))/per));
+                    lower=max(round(abs(min(min(figdata.vibro))/per)), 1);   % index, at least 1
                     cMap(lower:lower+upper,1) = linspace(0,1,upper+1);
-                    cMap(1:lower,3) = linspace(lower/30,0,lower);
+                    cMap(1:lower,3) = linspace(min(lower/30,1),0,lower);       % colormap values <= 1
                 else  %no negative values
                     cMap(1:100,1) = linspace(0,1,100);
                 end
                 colormap(cMap);
                 colorbar;
                 view(0, -90);
-            catch
+            catch err
                 close Phonovibrogramm;
-                display('No vibrogramm data present (old file format)');
+                disp(['No vibrogram shown: ' err.message]);
             end
 
         end
@@ -1950,7 +2051,7 @@ switch action
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
         % Info callback.
     case 'info'
-        helpwin('vox')
+        doc('vox')   % helpwin is obsolete
         % END of Info callback section
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
@@ -1976,13 +2077,19 @@ switch action
         miny = min(s);
         s = (2*s./(maxy-miny)-(maxy+miny)/(maxy-miny))./1.0001;
         figure(372);plot([1:length(s)]./Fs, s);
+        [~, filename] = fileparts(filename);   % 'a.wav' -> 'a', avoids 'a.wav.wav'
         audiowrite([path filename '.wav'], s, data.Fs);
         sound(s, data.Fs);
         %mo
-        try
-            initfilename = ['out_*.wav'];
-            [filename, pathname] = uiputfile(initfilename, 'choose output wav file');
-            audiowrite([pathname filename '.wav'], s, data.Fs);
+        initfilename = ['out_*.wav'];
+        [filename, pathname] = uiputfile(initfilename, 'choose output wav file');
+        if ischar(filename)   % dialog not cancelled
+            [~, filename] = fileparts(filename);   % uiputfile already adds .wav
+            try
+                audiowrite(fullfile(pathname, [filename '.wav']), s, data.Fs);
+            catch err
+                warning('Could not write the WAV file: %s', err.message);
+            end
         end
         % END of WAV callback section
 
@@ -2023,6 +2130,6 @@ switch action
     case 'closevox'
         close all;
     otherwise
-        display('couldnt find some for this action:');action
+        disp('couldnt find some for this action:');action
 
 end;    % switch action case...
