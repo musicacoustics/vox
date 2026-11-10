@@ -756,6 +756,7 @@ switch action
          set(Hndl.batch,'Value',1);
          set(Hndl.batch,'enable','off');
          controlfig = openfig('control_file_gui','reuse');
+         voxcolor(controlfig, 'light');   % the .fig stores light colours
          Hndl.controlfig = controlfig;
          rb_trac = findobj(Hndl.controlfig,'Tag','rb_trac');
          set(rb_trac,'Enable','off');
