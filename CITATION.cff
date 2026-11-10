@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use VOX, please cite it as below."
+title: "VOX – a physical model of the human voice"
+type: software
+authors:
+  - family-names: Kob
+    given-names: Malte
+    affiliation: "Detmold University of Music"
+    orcid: "https://orcid.org/0000-0002-9159-2712"
+repository-code: "https://github.com/musicacoustics/vox"
+license: GPL-3.0-or-later
+keywords:
+  - voice
+  - singing voice
+  - physical modelling
+  - vocal folds
+  - vocal tract
+  - multi-mass model
+  - MATLAB
+preferred-citation:
+  type: thesis
+  title: "Physical modeling of the singing voice"
+  authors:
+    - family-names: Kob
+      given-names: Malte
+      orcid: "https://orcid.org/0000-0002-9159-2712"
+  year: 2002
+  institution:
+    name: "RWTH Aachen University"
+  thesis-type: "Doctoral thesis"
