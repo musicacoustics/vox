@@ -66,3 +66,4 @@ end
 xlabel('Time [s]');
 grid on;
 ylabel('Sound pressure level [dB]');
+voxcolor([Hndl.mainaxes1 Hndl.mainaxes2]);   % black fgstyle lines follow the theme

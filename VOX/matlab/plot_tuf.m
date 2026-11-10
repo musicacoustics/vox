@@ -60,4 +60,5 @@ end
 xlabel('Time [s]');
 grid on;
 ylabel('Sound pressure [a.u.]');
+voxcolor([Hndl.mainaxes1 Hndl.mainaxes2]);   % black fgstyle lines follow the theme
 zoom on
