@@ -383,12 +383,12 @@ if n_samples > 0
                 [p_out_mouth, pin_gl_ac, PARCTIM] ...
                     = ctim2(data.tubes, 0, data.properties.damping, ii, PARCTIM, ...
                     out_vf_voc, PARNOISE);
-                y_out_all(:,ii) = PARCTIM.output_plus(1:sizetubes,1) + PARCTIM.input_minus(:);
+                y_out_all(:,ii) = PARCTIM.p_boundaries;   % tube ends, glottis to mouth (sizetubes+1)
                 if (GRONT ==  1) | (GRONT ==  4)
                     if voxfigflag('Wave propagation in the vocal tract',1) ==  1
                         set(0,'CurrentFigure',Hndl.voctractfig)
                         set(Hndl.voctractfig,'CurrentAxes',Hndl.voctractfigplot)
-                        waterfall(t(1:ii), 1:sizetubes, y_out_all);
+                        waterfall(t(1:ii), 1:sizetubes+1, y_out_all);
                         view(0,85)
                         grid off
                     else   % create figure
@@ -397,14 +397,15 @@ if n_samples > 0
                             'Position',[.5 .05 .5 .4]);
                         set(Hndl.voctractfig,'MenuBar', 'none');
                         Hndl.voctractfigplot = axes;
-                        waterfall(t(1:ii), 1:sizetubes, y_out_all);
+                        waterfall(t(1:ii), 1:sizetubes+1, y_out_all);
                         view(0,85)
                         grid off
                     end
                 end;
-                p_out_mouth       = y_out_all(sizetubes,ii);
+                % p_out_mouth from ctim2: pressure at the mouth end (was
+                % y_out_all(sizetubes,ii), the left end of the last tube)
                 data.out.t        = t(1:ii);
-                data.out.segments = 1:sizetubes;
+                data.out.segments = 1:sizetubes+1;
                 data.out.h        = y_out_all;
             elseif   get(Hndl.TractCalcMode, 'Value') ==  4 % import
                 [p_out_mouth, pin_gl_ac, PARTRACT] = tractsig(ii, ...

@@ -905,7 +905,7 @@ switch action
             data.out.t = PARCTIM.out.t;
             data.out.segments = PARCTIM.out.segments;
             data.out.h = PARCTIM.out.y;
-            data.Fs = Fs;
+            data.Fs = PARCTIM.out.Fs;   % internal rate of ctim2 (multiple of Fs), as voctract
             data.Tmax = max(data.out.t);
         end;
         if QUIT ==  0
