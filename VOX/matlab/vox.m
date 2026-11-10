@@ -1470,10 +1470,11 @@ switch action
             if isfile(fullfile(WORKDIR, 'last_filename.mat'))
                 L = load(fullfile(WORKDIR, 'last_filename.mat'), 'data');
                 % replace only the signal: the model data (radius, properties,
-                % ...) must stay for Tract Calc; drop the impedance of the
-                % previous tract result
+                % ...) must stay for Tract Calc; drop the impedance and the
+                % internal signals (out, shown by GRON/waterfall) of the
+                % previous result
                 data = get(Hndl.figureNumber,'UserData');
-                if isfield(data, 'z'), data = rmfield(data, 'z'); end
+                data = rmfield(data, intersect({'z', 'out'}, fieldnames(data)));
                 for fn = fieldnames(L.data)'
                     data.(fn{1}) = L.data.(fn{1});
                 end
@@ -1484,6 +1485,7 @@ switch action
                 title(['"', strrep(data.filename, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
             else   % nothing loaded yet: empty plot with a message, as for missing calc files
                 data = get(Hndl.figureNumber,'UserData');
+                data = rmfield(data, intersect({'z', 'out'}, fieldnames(data)));   % they belong to the previous signal
                 data.y = [-1 1 0 -1 0 1 -1];
                 data.Fs = 1;
                 data.t = (0:length(data.y)-1)/data.Fs;
@@ -1499,7 +1501,7 @@ switch action
                 L = load(fullfile(WORKDIR, 'recorded.mat'), 'data');
                 % replace only the signal, keep the model data (see LastFile)
                 data = get(Hndl.figureNumber,'UserData');
-                if isfield(data, 'z'), data = rmfield(data, 'z'); end
+                data = rmfield(data, intersect({'z', 'out'}, fieldnames(data)));
                 for fn = fieldnames(L.data)'
                     data.(fn{1}) = L.data.(fn{1});
                 end
@@ -1509,6 +1511,7 @@ switch action
                 title(['"', strrep(data.filename, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
             else   % nothing recorded yet
                 data = get(Hndl.figureNumber,'UserData');
+                data = rmfield(data, intersect({'z', 'out'}, fieldnames(data)));   % they belong to the previous signal
                 data.y = [-1 1 0 -1 0 1 -1];
                 data.Fs = 1;
                 data.t = (0:length(data.y)-1)/data.Fs;
