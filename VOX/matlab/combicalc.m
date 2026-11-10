@@ -374,6 +374,10 @@ if n_samples > 0
                 end;
                 Infold.pin_gl_ac = pin_gl_ac;
             elseif   get(Hndl.TractCalcMode, 'Value') ==  2 % tube calc.
+                if BRK   % Break during the fold step: ctim2 would return
+                    disp('combibreak');   % without assigning its outputs
+                    break
+                end
                 areas3('tubecalc');
                 sizetubes = size(data.tubes,1);
                 [p_out_mouth, pin_gl_ac, PARCTIM] ...
