@@ -29,7 +29,9 @@ for k = 1:numel(files)
     if isempty(base)
         continue
     end
-    for id = unique(idn)
+    % a row: for a file without messages unique gives a 0x1 cell, and
+    % "for id = <0x1>" runs once with an empty id
+    for id = reshape(unique(idn), 1, [])
         a = sum(strcmp(idn, id{1}));
         b = sum(strcmp(ido, id{1}));
         if a > b
