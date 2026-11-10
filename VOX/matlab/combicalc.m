@@ -136,18 +136,8 @@ if n_samples > 0
         % do it only once...combicalc init
         if ii ==  1
             %display('eins');
-            if get(Hndl.TractCalcMode, 'value') ==  1   % stairs calc.
-                fname = 'cs';
-            else
-                fname = 'ct';
-            end;
-            if get(Hndl.ModTract, 'value') ==  1   % modified tract
-                modflag = 'm';
-            else
-                modflag = '_';
-            end;
-            combi_filename = ['out' modflag fname SD_NAMES(2,7:8) num2str(Infold.register) ...
-                num2str(TRACH) num2str(FOLD) num2str(TRACT) num2str(NOISE) '  '];
+            % same name as vox('input') looks for (was built separately there)
+            combi_filename = [voxcombiname() '  '];
             control_init; % call script for initial parameter definitions
             timeindex = 1;  % initialize timeindex for batch
             if BATCH % called only once
