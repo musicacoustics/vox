@@ -36,7 +36,7 @@ VOX saves its results into its own folder, so every test works on a copy of `VOX
 | `codeanalyzer` | `checkcode` of the `.m` files in `VOX/matlab` that differ from the baseline (also uncommitted and new files) | no message ID occurs more often than on the baseline |
 | `regression` | fold 30 ms, tract (stairs) 20 ms, combi (stairs) 30 ms with the default settings, on the change and on the baseline (`voxtest_regression`) | `y`, `z`, `Fs` bit-identical |
 | `guisweep` | the callback of every control of the main window: popups with every entry, radio buttons on/off, push buttons, sliders, edits (`voxtest_guisweep`); file dialogs and message boxes are replaced by the stubs in `stubs/` (cancel); not: play, record | no error that does not also occur on the baseline |
-| `tubes` | tube model (`ctim2`): accuracy against a frequency-domain reference (cylinders, staircase, exact cones), stability of 2 s impulse responses and 40 random geometries, combi interface over 1 s (`voxtest_tubes`) | formants within 1 %, median level < 0.5 dB, all responses decay, periodic steady state |
+| `tubes` | tube model (`ctim2`): accuracy against a frequency-domain reference (cylinders, staircase, exact cones), stability of 43 geometries (3 named, 40 random), all with 20 ms impulse responses (the default Tract duration), combi interface over 1 s (`voxtest_tubes`) | formants within 1 %, median level < 0.5 dB, every response finite and its last 2 ms at least 20 dB below the maximum, periodic steady state |
 
 Further tests of a change: a function `voxtest_<name>(voxdir)` in this folder that prints `RESULT PASS ...` or `RESULT FAIL ...` as its last line and exits with `exit(1)` on failure; run it with `runvoxtests('Tests', {'<name>'})`.
 
