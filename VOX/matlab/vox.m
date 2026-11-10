@@ -813,16 +813,40 @@ switch action
         % WORKDIR); start the dialog in out/ instead
         [filename, pathname] = uigetfile(fullfile(WORKDIR, 'out', ['out' modechar '*.mat']), 'choose input tract file');
         if ischar(filename)
+            filename = filename(1:(length(filename)-4));
+            src = fullfile(pathname, [filename '.mat']);
+            % vox('input') loads SD_NAMES(value,:) from the working folder:
+            % copy the file there as it is (also the old format with Fs, y),
+            % but do not silently replace a different file of that name,
+            % e.g. the own result out_st_a when out/out_st_a.mat is chosen
+            dst = [deblank(filename(1:min(end, 15))) '.mat'];
+            if isfile(dst) && ~isequaln(load(src), load(dst))
+                answer = questdlg(['The VOX folder already contains a different "' dst ...
+                    '". Replace it with the selected file?'], 'Load tract file', ...
+                    'Replace', 'Cancel', 'Cancel');
+                if strcmp(answer, 'Replace')
+                    copyfile(src, dst);
+                else
+                    filename = 0;   % keep the existing file, load nothing
+                end
+            elseif ~isfile(dst)
+                copyfile(src, dst);
+            end
+        end
+        if ischar(filename)
             value = 2; % set 2 entry as file entry
             set(Hndl.TractCalcMode, 'Value', 3);
-            filename = filename(1:(length(filename)-4));
-            load(fullfile(pathname, filename));
+            S = load(src);
+            if isfield(S, 'data')
+                data = S.data;
+            else   % old format: only the signal (as vox('input') reads it)
+                data.Fs = S.Fs;
+                data.y  = S.y(:)';
+            end
             while length(filename) < 16
                 filename(end+1) = ' ';
             end
             SD_NAMES(value,:) = [filename(1:15)];
-            % vox('input') loads SD_NAMES(value,:) from the working folder
-            save(deblank(SD_NAMES(value,:)), 'data');
             data.filename = filename;
             data.pathname = pathname;
             try
