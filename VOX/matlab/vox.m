@@ -166,6 +166,7 @@ switch action
         if PARA
             PARA = 1;
         else
+            voxclosefunc;   % windows of an earlier VOX session would use the new handles and fail
             Hndl = voxgui(Fs,TMAX,PTG,TVAKT,MODAL,HEAD,FALSETT,MODFOLD,MODTRACT,TRACH,FOLD, ...
                 TRACT,NOISE,GRONF,SURFS,GRONT,popupStr,BG,FMAX,BATCH,initractcalcmode,TRACTDISP,vowel,filevalue,iniinput, ...
                 SD_NAMES,SD_DISP,SD_PLOTCMD,GRON,FEswitch,MOV,VIBRO);
