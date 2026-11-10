@@ -17,20 +17,45 @@ accessible; do not push there).
 - `vox.m` – main GUI controller (one big `switch action`), `voxgui.m` builds the GUI
 - `foldsig.m` → `siggi.m` (script) – vocal fold time loop; forces in `aerforc.m`,
   `contforc.m`, `cplforc.m`, `dampforc.m`; integration in `deq16m.m`
-- `tractsig.m`, `ctim2.m`, `voctract.m`, `propagator.m` – vocal tract
+- `tractsig.m`, `voctract.m` – vocal tract, stairs; `ctim2.m` with `tubeprepare.m`
+  and `tubekernel.m` – vocal tract, tubes (staircase of cylindrical sub-tubes;
+  `propagator.m`, `preparation.m` etc. are the former, unstable formulation, unused)
 - `combicalc.m` – coupled fold/tract simulation
 - `noisesig.m` – turbulence noise
 - `foldmod.m`, `areas3.m` – interactive editors for fold and tract geometry
 - `controlfile.m`, `parametermode.m` – batch and parameter modes
 - `out/` – example results (generated data, should not be version-controlled)
+- `tests/` (repository root) – test suite, see Testing
 
 ## Environment
 
-- MATLAB R2026a (R2022b also installed on some machines), Signal Processing Toolbox
-  (`decimate`, `resample`, `fftfilt`)
+- MATLAB R2025a or newer for development and tests (R2026a on some machines; keep
+  VOX itself runnable on R2022b where possible: guard newer functions), Signal
+  Processing Toolbox (`decimate`, `resample`, `fftfilt`)
 - Start: `cd VOX/matlab` then `vox`
-- MATLAB is reachable through the MATLAB MCP server (MATLAB Agentic Toolkit). Prefer
-  the user's shared MATLAB session when available.
+- MATLAB is reachable through the MATLAB MCP server (MATLAB Agentic Toolkit). Use the
+  user's shared MATLAB session for interactive work when available, but never run
+  tests there (see Testing).
+- Machine-specific settings (MATLAB install paths, which releases exist on a machine,
+  paths of CLI tools such as `gh`) do not belong in this file or the repository; keep
+  them in local, per-machine notes.
+
+## Testing
+
+- Run tests **hidden and in the background**, so the user's screen and MATLAB stay
+  usable: a separate MATLAB process with `-batch` plus `-noFigureWindows` (Windows) or
+  `-nodisplay` (Linux, macOS). `-batch` alone still shows every figure, and VOX opens
+  many windows and waitbars. Start long runs as background jobs and do not wait idle.
+- Use the suite in `tests/`: `matlab -noFigureWindows -batch "cd tests; runvoxtests"`
+  (see `tests/README.md`). It works on copies of `VOX/matlab` in `tempdir`, because VOX
+  saves its results into its own folder, and compares with the branch `main`:
+  Code Analyzer of the changed files, bit-identical regression runs, GUI sweep over
+  all controls of the main window (file dialogs stubbed as cancelled), tube model
+  against a frequency-domain reference.
+- Test scripts must run on MATLAB R2025a and newer. Add tests for a change as
+  `tests/voxtest_<name>.m` (last output line `RESULT PASS ...`/`RESULT FAIL ...`)
+  instead of throw-away scripts, so that later sessions can reuse them.
+- Report in the PR which tests ran, on which release, and what was not tested.
 
 ## Rules
 
@@ -47,7 +72,10 @@ accessible; do not push there).
 - Never commit generated results (`.mat`, `.wav`, `.avi`), autosaves (`.asv`) or
   machine-specific files.
 - Before finishing a change: run the Code Analyzer on the changed files, run the
-  affected feature in MATLAB, and state clearly what was tested and what was not.
+  affected feature in MATLAB (hidden, see Testing), and state clearly what was tested
+  and what was not.
+- Before starting, read the open issues and PRs that touch the same topic (`gh issue
+  list`, `gh pr list`); earlier sessions are not remembered otherwise.
 
 ## History and known issues (analysis November 2026)
 
