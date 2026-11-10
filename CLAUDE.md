@@ -77,6 +77,34 @@ accessible; do not push there).
 - Before starting, read the open issues and PRs that touch the same topic (`gh issue
   list`, `gh pr list`); earlier sessions are not remembered otherwise.
 
+## Collaboration (several machines and people)
+
+The maintainer, other contributors and Claude sessions work on several computers.
+GitHub is the only shared state: unpushed branches, local Claude memory, scratchpad
+scripts and chat transcripts are invisible to everyone else (in November 2026 two
+machines solved the same task because it existed only in a chat).
+
+- **Issue first.** Every task gets an issue before any code is written, also when it
+  is asked for in a chat. Create it if it does not exist.
+- **Claim it.** Assign the issue, add the label `in progress` and comment who works on
+  it and on which machine. Do not start an issue that is `in progress` elsewhere;
+  comment there instead.
+- **Make it visible early.** Branch `fix/<issue>-<topic>` or `feature/<issue>-<topic>`;
+  push after the first commit and open a draft PR (`Closes #<issue>`), so others see
+  the work and the files it touches.
+- **Start of a session:** `git fetch`, then `gh issue list`, `gh pr list` and the latest
+  comments of the issues and PRs you continue.
+- **End of a session or pause:** push everything and post a status comment on the PR
+  (or the issue): done, tested (which release), not tested, next step, questions for
+  the maintainer. The next session, on any machine, reads it with `gh`.
+- **Someone else's branch:** pull before you change it, and say what you pushed in a
+  PR comment.
+- **Merging:** only through PRs (the PR template asks for the test report). Merge small
+  PRs soon and update open branches afterwards (`git merge origin/main`). Remove
+  `in progress` when the PR is merged or closed. GitHub enforces this for `main` with
+  the ruleset `main` (no direct push, no force push, no deletion, 0 approvals);
+  its export is `.github/rulesets/main.json` (Settings → Rules → Rulesets → Import).
+
 ## History and known issues (analysis November 2026)
 
 - The first commit (upload March 2025, code state May 2023) is the clean baseline.
