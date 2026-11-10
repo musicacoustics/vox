@@ -58,6 +58,7 @@ Hndl.menu(8) = uimenu(Hndl.menu(6),...
 %================================================================
 % test for a close func that closes all figures
 %set(Hndl.figureNumber,'CloseRequestFcn','voxclosefunc')
+set(Hndl.figureNumber,'CloseRequestFcn',@voxclosefunc);   % closing VOX also closes its sub-windows
 %plotedit(Hndl.figureNumber,'on');
 % Settings for graphics
 top			= 0.9;
