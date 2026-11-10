@@ -527,6 +527,9 @@ switch callback
       end
 
 
+      % a single segment (very short signal) cannot be drawn as stairs: with
+      % one time point the 10 radius curves form one row and stairs fails
+      if numel(timevector) > 1
       %  plot changes
       if actstr
          figure(612);
@@ -544,6 +547,7 @@ switch callback
          figure(614);
          stairs(timevector(1:length(timevector)), newValue3(1:end,1:10));
          grid on; xlabel('Time [ms]');ylabel(oldStr3);
+      end
       end
 end  %call callback
 %===========================================================================================================================

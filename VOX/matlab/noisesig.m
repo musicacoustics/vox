@@ -178,7 +178,7 @@ for vortex = 1:sizevortices   % vortex counter
             Hndl.noisefig = figure('visible','on','NumberTitle','off', ...
                'Name','Vortex generation','Units','Pixels',...
                'Position',[660 260 250 330]);
-            set(Hndl.noisefig,'DoubleBuffer','on');
+            % (DoubleBuffer removed: no effect since R2014b graphics)
             set(Hndl.noisefig,'MenuBar', 'none');
             Hndl.noisefigplot = axes;
             xlabel('Distance from glottis [mm]');

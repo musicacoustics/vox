@@ -159,7 +159,7 @@ else	% create figure
             'MenuBar', 'none',  ...
             'Color', Hndl.voxMainBGColor, ...
             'Position',[Scrwidth-0.5 Scrheight-0.5 0.25 0.5]);
-        set(Hndl.plotmassfig,'DoubleBuffer','on');
+        % (DoubleBuffer removed: no effect since R2014b graphics)
 
         % set pos of window
         dockwindowPosSize = get(Hndl.figureNumber, 'Position');

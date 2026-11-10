@@ -241,7 +241,7 @@ for n = 1 : 1 : num_it
                     Hndl.infofigure = figure('visible','on','NumberTitle','off', ...
                         'Name','Sound pressure during calculation','Units','normalized',...
                         'Position',[.55 .55 .45 .4]);
-                    set(Hndl.infofigure,'DoubleBuffer','on');
+                    % (DoubleBuffer removed: no effect since R2014b graphics)
                 end
 
                 Hndl.infofig.yaxe11 = subplot(3,3,1);
@@ -468,7 +468,7 @@ end
        ef_duration    = get(handles.durationslider,  'Value')*100; % get value of duration in percent of f0
        if ef_force>0 && ef_duration>0
            areafilename   = ['externalforce_glottalarea_' sprintf('%g', ef_force*100) 'mN_'  sprintf('%g', ef_duration) 'percent.csv'];
-           csvwrite(areafilename, Infold.completeareafunction);
+           writematrix(Infold.completeareafunction, areafilename);   % csvwrite is not recommended
            disp(['wrote area function into file: ' areafilename]);
        end
     end

@@ -21,7 +21,7 @@ if get(Hndl.surfs, 'value') ==  1 && figdata.OldData ~= 2;
     end
     
     figure(60)
-    set(gcf, 'Renderer', 'zbuffer');
+    set(gcf, 'Renderer', 'opengl');   % zbuffer was removed with R2014b graphics
     subplot(2,2,1); 
     surfl(time, massaxis, fcxv_left); %the matrics time, massaxis, fcxv_left are computed in writecontforc.m
     alpha(.4)
@@ -57,7 +57,7 @@ if get(Hndl.surfs, 'value') ==  1 && figdata.OldData ~= 2;
 
 
     figure(61);
-    set(gcf, 'Renderer', 'zbuffer');
+    set(gcf, 'Renderer', 'opengl');   % zbuffer was removed with R2014b graphics
     subplot(2,2,1);
     surfl(time, massaxis, fczv_left);
     alpha(.4)
