@@ -239,7 +239,7 @@ switch action
       set(get(Hndl.TractMod.areafunc, 'Title'),'String', TitleStr);
       xlabel('Distance from glottis [mm]');
       ylabel('Radius [mm]');
-      AREA_DAT = [ linehandle ; 0 ; 0 ];
+      AREA_DAT = struct('line', linehandle, 'fixedx', 0, 'fixedy', 0);   % was [linehandle; 0; 0]: a graphics array since R2014b, which cannot take numbers
 
       %  watchoff(oldFigNumber);
 
@@ -252,7 +252,7 @@ switch action
       x = point(1,1);
       y = point(1,2);
 
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       line_x=get(linehandle,'XData');
       line_y=get(linehandle,'YData');
       dist=(line_x-x).^2 + (line_y-y).^2;
@@ -264,8 +264,8 @@ switch action
       set(Hndl.TractMod.areafunc,'YLimMode','manual');
       drawnow;
 
-      AREA_DAT(2) = fixedx;
-      AREA_DAT(3) = fixedy;
+      AREA_DAT.fixedx = fixedx;
+      AREA_DAT.fixedy = fixedy;
 
       set(gcf,'WindowButtonMotionFcn', 'areas3(''move'');');
       set(gcf,'WindowButtonUpFcn', 'areas3(''up'');');
@@ -281,12 +281,12 @@ switch action
 
       %CurrentRadius = AREA_DAT(1);
       %CurrentDisc = AREA_DAT(2);
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       %Radius = findobj('Tag','radius');
       %Area = findobj('Tag','area');
       %Disc = findobj('Tag','disc');
-      fixedx = AREA_DAT(2);
-      fixedy = AREA_DAT(3);
+      fixedx = AREA_DAT.fixedx;
+      fixedy = AREA_DAT.fixedy;
       length_fii = size(data.radius,1);
       YData = get(linehandle,'YData');
 
@@ -343,9 +343,9 @@ switch action
       % up callback
    case 'up'
 
-      set(AREA_DAT(1),'LineStyle','-');
+      set(AREA_DAT.line,'LineStyle','-');
 
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       YData = get(linehandle,'YData');
       set(Hndl.TractMod.areafunc, 'YLim', [0 max(YData)+1]);
       set(gcf,'WindowButtonMotionFcn','');
@@ -360,12 +360,12 @@ switch action
       data=get(Hndl.figureNumber, 'UserData');
       %CurrentRadius = AREA_DAT(1);
       %CurrentDisc = AREA_DAT(2);
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       %Radius = findobj('Tag','radius');
       %Area = findobj('Tag','area');
       %Disc = findobj('Tag','disc');
-      fixedx = AREA_DAT(2);
-      fixedy = AREA_DAT(3);
+      fixedx = AREA_DAT.fixedx;
+      fixedy = AREA_DAT.fixedy;
       length_fii = size(data.radius,1);
       YData = get(linehandle,'YData');
 
@@ -383,14 +383,14 @@ switch action
       xb(length(xb)+1) = xb(length(xb));
       yb(length(yb)+1) = yb(length(yb));
 
-      set(AREA_DAT(1),'YData',yb);
-      set(AREA_DAT(1),'XData',xb);
+      set(AREA_DAT.line,'YData',yb);
+      set(AREA_DAT.line,'XData',xb);
 
       data.radius = data.radius/1000;
       data.spacing = data.spacing/1000;
       set(Hndl.figureNumber, 'UserData',data);
 
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       YData = get(linehandle,'YData');
       set(Hndl.TractMod.areafunc, 'YLim', [0 max(YData)+1]);
       %  drawnow;
@@ -413,7 +413,7 @@ switch action
       end;
 
       %AREA_DAT(2) = CurrentDisc;
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       %radius = findobj('Tag','radius');
       %area = findobj('Tag','area');
       %disc = findobj('Tag','disc');
@@ -460,7 +460,7 @@ switch action
 
       %AREA_DAT(1) = CurrentRadius;
       %CurrentDisc = AREA_DAT(2);
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       %radius = findobj('Tag','radius');
       %area = findobj('Tag','area');
       length_fii = size(data.radius,1);
@@ -506,7 +506,7 @@ switch action
       CurrentRadius = sqrt(Area/pi);
       %AREA_DAT(1) = CurrentRadius;
       %CurrentDisc = AREA_DAT(2);
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       radius = findobj('Tag','radius');
       area = findobj('Tag','area');
       length_fii = size(data.radius,1);
@@ -588,12 +588,12 @@ switch action
       Mode = data.properties.mode;
       % CurrentRadius = AREA_DAT(1);
       % CurrentDisc = AREA_DAT(2);
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       radius = findobj('Tag','radius');
       area = findobj('Tag','area');
       disc = findobj('Tag','disc');
-      fixedx = AREA_DAT(2);
-      fixedy = AREA_DAT(3);
+      fixedx = AREA_DAT.fixedx;
+      fixedy = AREA_DAT.fixedy;
       length_fii = size(data.radius,1);
 
       vowelname = get(Hndl.VOWEL, 'string');
@@ -818,7 +818,7 @@ switch action
    case 'done'
       data=get(Hndl.figureNumber, 'UserData');
       length_fii = size(data.radius,1);
-      linehandle = AREA_DAT(1);
+      linehandle = AREA_DAT.line;
       YData = get(linehandle,'YData');
 
       data.radius = data.radius*1000;

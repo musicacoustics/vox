@@ -919,18 +919,23 @@ switch action
         GRONT = get(Hndl.gront,'value')-1;
         data  = get(Hndl.figureNumber, 'UserData');
         if GRONT ==  1
-            try
-                a = data.out;   % check if data.out exists
-                Hndl.tractGrontFig = figure('Name', 'Waterfall',...
-                    'Units', 'Normalized',...
-                    'Position', [0.51 0.5 0.48 0.48]);
-                waterfall(data.out.t, data.out.segments, data.out.h);
-            catch
-                warning('No graphics data available!')
+            % show the waterfall of the last tract result; without one (none yet, or
+            % a calculation is running) it is drawn during the next tract calculation
+            if isfield(data, 'out') && all(isfield(data.out, {'t', 'segments', 'h'}))
+                try
+                    Hndl.tractGrontFig = figure('Name', 'Waterfall',...
+                        'Units', 'Normalized',...
+                        'Position', [0.51 0.5 0.48 0.48]);
+                    waterfall(data.out.t, data.out.segments, data.out.h);
+                catch err
+                    warning('Waterfall plot not possible: %s', err.message);
+                end
+            else
+                disp('Waterfall: no tract result yet; it is drawn during the tract calculation.');
             end
         elseif GRONT ==  2 % nothing?
         elseif GRONT ==  0 % close graphics window
-            try
+            if isfield(Hndl, 'tractGrontFig') && ishghandle(Hndl.tractGrontFig)
                 close(Hndl.tractGrontFig);
             end
         end
