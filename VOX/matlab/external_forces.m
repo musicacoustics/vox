@@ -13,6 +13,7 @@ guiname            = 'external_forces_gui';        % name of this gui
 % gui stuff
 if radio == 1 && isda == 0
     Hndl.efgui     = openfig(guiname, 'reuse');
+    voxcolor(Hndl.efgui, 'light');   % the .fig stores light colours
     handles        = guihandles(Hndl.efgui);
     % set pos of window
     dockwindowPosSize = get(Hndl.figureNumber, 'Position');

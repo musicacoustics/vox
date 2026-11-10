@@ -164,6 +164,10 @@ for vortex = 1:sizevortices   % vortex counter
          else
             lcolor = vortexcolor;
          end
+         [~, isdark] = voxcolor('fg', Hndl.noisefigplot);
+         if isdark
+            lcolor = 1-lcolor;   % strong vortices bright on a dark background
+         end
          hold on
          line([position*1000 position*1000], ... % draw vortex
             [-diameter*1000/2 diameter*1000/2], ...

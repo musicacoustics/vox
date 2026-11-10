@@ -8,6 +8,7 @@ end;
 
 openfig('parametermode_gui','reuse');
 paramfig      = findobj('Name','Parametermode');
+voxcolor(paramfig, 'light');   % the .fig stores light colours
 Hndl.paramfig = paramfig;
 handles       = guihandles(paramfig);
 

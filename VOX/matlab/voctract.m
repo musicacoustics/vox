@@ -109,6 +109,7 @@ elseif data.properties.radimp == 2
       x,imag(f),'k--', w/pi*fmax,imag(hRm),'r--', w/pi*fmax,imag(hTm),'b--');
    legend('|Z|',' R ',' T ','Location','southeast')   % numeric location 4 is an error now
    grid on
+   voxcolor(gca);   % black |Z| lines follow the theme
 
 end
 

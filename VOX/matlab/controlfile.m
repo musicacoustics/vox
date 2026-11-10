@@ -10,6 +10,7 @@ end;
 
 
 controlfig      = openfig('control_file_gui','reuse');
+voxcolor(controlfig, 'light');   % the .fig stores light colours
 Hndl.controlfig = controlfig;
 handles         = guihandles(controlfig);
 % unused GUIDE leftover "Edit Text": its callback calls control_file_gui.m,

@@ -493,6 +493,7 @@ if n_samples > 0
                 xlabel('Time [ms]');
                 set(get(yaxe(1),'Ylabel'),'String','A_{g} (k), A_{VT} (m) [mm^2], p_{m} (b), noise (c) [Pa], u (r) [mm^3/s]');
                 set(get(yaxe(2),'Ylabel'),'String','p^{g} (b), p_{g} (g), p_{in} (c), p_{s0} (k) [Pa]');
+                voxcolor(Hndl.infofigure);   % black (k) lines follow the theme
             end
         end; % of GRONs
     end; % end combicalc main loop
