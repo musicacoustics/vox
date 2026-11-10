@@ -107,7 +107,7 @@ elseif data.properties.radimp == 2
    plot(x,abs(f),'k-', w/pi*fmax,abs(hRm),'r-', w/pi*fmax,abs(hTm),'b-', ...
       x,real(f),'k:', w/pi*fmax,real(hRm),'r:', w/pi*fmax,real(hTm),'b:', ...
       x,imag(f),'k--', w/pi*fmax,imag(hRm),'r--', w/pi*fmax,imag(hTm),'b--');
-   legend('|Z|',' R ',' T ',4)
+   legend('|Z|',' R ',' T ','Location','southeast')   % numeric location 4 is an error now
    grid on
 
 end
