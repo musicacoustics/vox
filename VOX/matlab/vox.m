@@ -497,9 +497,9 @@ switch action
                 disp('movie file creation cancelled');
             else
                 % no cd(pathName): VOX finds its functions only in WORKDIR
-                avifiles   = dir(fullfile(pathName, 'foldmov_*.fig'));   % was dir('pathName'), always empty
-                fanz       = size(avifiles, 1)+1;
-                movnum     = sprintf('%03d', fanz);   % was named datetime, which hid the datetime function in vox
+                % number above the highest foldmov_*: counting the files
+                % could pick a number in use (gaps) and overwrite that figure
+                movnum     = voxnextnum(pathName, 'foldmov_');   % was named datetime, which hid the datetime function in vox
                 %movfilenam = ['out/foldmov_' datetime '.avi'];
                 movfilename = fullfile(pathName, fileName);
                 % make movie file (avifile/addframe have been removed: VideoWriter)
@@ -813,16 +813,40 @@ switch action
         % WORKDIR); start the dialog in out/ instead
         [filename, pathname] = uigetfile(fullfile(WORKDIR, 'out', ['out' modechar '*.mat']), 'choose input tract file');
         if ischar(filename)
+            filename = filename(1:(length(filename)-4));
+            src = fullfile(pathname, [filename '.mat']);
+            % vox('input') loads SD_NAMES(value,:) from the working folder:
+            % copy the file there as it is (also the old format with Fs, y),
+            % but do not silently replace a different file of that name,
+            % e.g. the own result out_st_a when out/out_st_a.mat is chosen
+            dst = [deblank(filename(1:min(end, 15))) '.mat'];
+            if isfile(dst) && ~isequaln(load(src), load(dst))
+                answer = questdlg(['The VOX folder already contains a different "' dst ...
+                    '". Replace it with the selected file?'], 'Load tract file', ...
+                    'Replace', 'Cancel', 'Cancel');
+                if strcmp(answer, 'Replace')
+                    copyfile(src, dst);
+                else
+                    filename = 0;   % keep the existing file, load nothing
+                end
+            elseif ~isfile(dst)
+                copyfile(src, dst);
+            end
+        end
+        if ischar(filename)
             value = 2; % set 2 entry as file entry
             set(Hndl.TractCalcMode, 'Value', 3);
-            filename = filename(1:(length(filename)-4));
-            load(fullfile(pathname, filename));
+            S = load(src);
+            if isfield(S, 'data')
+                data = S.data;
+            else   % old format: only the signal (as vox('input') reads it)
+                data.Fs = S.Fs;
+                data.y  = S.y(:)';
+            end
             while length(filename) < 16
                 filename(end+1) = ' ';
             end
             SD_NAMES(value,:) = [filename(1:15)];
-            % vox('input') loads SD_NAMES(value,:) from the working folder
-            save(deblank(SD_NAMES(value,:)), 'data');
             data.filename = filename;
             data.pathname = pathname;
             try
@@ -1470,10 +1494,11 @@ switch action
             if isfile(fullfile(WORKDIR, 'last_filename.mat'))
                 L = load(fullfile(WORKDIR, 'last_filename.mat'), 'data');
                 % replace only the signal: the model data (radius, properties,
-                % ...) must stay for Tract Calc; drop the impedance of the
-                % previous tract result
+                % ...) must stay for Tract Calc; drop the impedance and the
+                % internal signals (out, shown by GRON/waterfall) of the
+                % previous result
                 data = get(Hndl.figureNumber,'UserData');
-                if isfield(data, 'z'), data = rmfield(data, 'z'); end
+                data = rmfield(data, intersect({'z', 'out'}, fieldnames(data)));
                 for fn = fieldnames(L.data)'
                     data.(fn{1}) = L.data.(fn{1});
                 end
@@ -1484,6 +1509,7 @@ switch action
                 title(['"', strrep(data.filename, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
             else   % nothing loaded yet: empty plot with a message, as for missing calc files
                 data = get(Hndl.figureNumber,'UserData');
+                data = rmfield(data, intersect({'z', 'out'}, fieldnames(data)));   % they belong to the previous signal
                 data.y = [-1 1 0 -1 0 1 -1];
                 data.Fs = 1;
                 data.t = (0:length(data.y)-1)/data.Fs;
@@ -1499,7 +1525,7 @@ switch action
                 L = load(fullfile(WORKDIR, 'recorded.mat'), 'data');
                 % replace only the signal, keep the model data (see LastFile)
                 data = get(Hndl.figureNumber,'UserData');
-                if isfield(data, 'z'), data = rmfield(data, 'z'); end
+                data = rmfield(data, intersect({'z', 'out'}, fieldnames(data)));
                 for fn = fieldnames(L.data)'
                     data.(fn{1}) = L.data.(fn{1});
                 end
@@ -1509,6 +1535,7 @@ switch action
                 title(['"', strrep(data.filename, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
             else   % nothing recorded yet
                 data = get(Hndl.figureNumber,'UserData');
+                data = rmfield(data, intersect({'z', 'out'}, fieldnames(data)));   % they belong to the previous signal
                 data.y = [-1 1 0 -1 0 1 -1];
                 data.Fs = 1;
                 data.t = (0:length(data.y)-1)/data.Fs;

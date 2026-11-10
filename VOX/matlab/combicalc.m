@@ -183,7 +183,7 @@ if n_samples > 0
             % video stuff
             if noisemovflag
                 % avifile has been removed: VideoWriter (find a free file name)
-                noisenum = sprintf('%03d', numel(dir(fullfile(WORKDIR, 'out', 'noisemov_*.avi')))+1);
+                noisenum = voxnextnum(fullfile(WORKDIR, 'out'), 'noisemov_');   % counting could pick a number in use
                 Hndl.noisemov = VideoWriter(fullfile(WORKDIR, 'out', ['noisemov_' noisenum '.avi']), 'Motion JPEG AVI');
                 Hndl.noisemov.FrameRate = 20;
                 Hndl.noisemov.Quality   = 100;
@@ -194,10 +194,9 @@ if n_samples > 0
             Hndl.movisgood  = -1;
             Hndl.foldmovfig = '';
             if GRONF & MOV
-                % find free filename
-                avifiles   = dir(fullfile(WORKDIR, 'out', 'combimov_*.avi'));
-                fanz       = size(avifiles, 1)+1;
-                movnum     = sprintf('%03d', fanz);   % was named datetime (hides the function)
+                % find free filename (above the highest combimov_*.avi/.fig;
+                % counting the files could pick a number in use)
+                movnum     = voxnextnum(fullfile(WORKDIR, 'out'), 'combimov_');   % was named datetime (hides the function)
                 movfilename = fullfile(WORKDIR, 'out', ['combimov_' movnum '.avi']);
                 % make movie file (avifile has been removed: VideoWriter);
                 % this created Hndl.noisemov before, so no frames were written
@@ -375,6 +374,10 @@ if n_samples > 0
                 end;
                 Infold.pin_gl_ac = pin_gl_ac;
             elseif   get(Hndl.TractCalcMode, 'Value') ==  2 % tube calc.
+                if BRK   % Break during the fold step: ctim2 would return
+                    disp('combibreak');   % without assigning its outputs
+                    break
+                end
                 areas3('tubecalc');
                 sizetubes = size(data.tubes,1);
                 [p_out_mouth, pin_gl_ac, PARCTIM] ...
