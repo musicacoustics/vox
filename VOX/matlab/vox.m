@@ -1021,11 +1021,13 @@ switch action
                 SD_NAMES(value,5:15) = ['c' 'F' SD_NAMES(2,7:8) num2str(Infold.register) ...
                     num2str(TRACH) num2str(FOLD) num2str(TRACT) num2str(NOISE) '  '];
             else
-                if filename ~=  0
+                % the vowel of a loaded combi file (combiload); filename is also
+                % set by fold calc, tract calc, dialogs etc., so check that it is one
+                % (with 'out_vf_n10000' the vowel became '_n' and nothing was found)
+                if ischar(filename) && numel(filename) >= 8 && startsWith(filename, {'out_c', 'outmc'})
                     SD_NAMES(2,7:8) = filename(7:8);
                 end
-                SD_NAMES(value,5:15) = ['c' 's' SD_NAMES(2,7:8) num2str(Infold.register) ...
-                    num2str(TRACH) num2str(FOLD) num2str(TRACT) num2str(NOISE) '  '];
+                SD_NAMES(value,:) = sprintf('%-15s', voxcombiname());   % same name as combicalc saves under
             end;
             set(Hndl.FoldCalc,    'Enable', 'off')
             set(Hndl.TractCalc,   'Enable', 'off')
@@ -1830,6 +1832,7 @@ switch action
         else
             NOISE = 0;
         end;
+        set(Hndl.INPUT, 'value', 4);   % show the combi result, as fold/tract/trach do
         if ~CALC
             vox('input');
         end
