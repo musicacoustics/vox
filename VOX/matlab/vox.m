@@ -497,9 +497,9 @@ switch action
                 disp('movie file creation cancelled');
             else
                 % no cd(pathName): VOX finds its functions only in WORKDIR
-                avifiles   = dir(fullfile(pathName, 'foldmov_*.fig'));   % was dir('pathName'), always empty
-                fanz       = size(avifiles, 1)+1;
-                movnum     = sprintf('%03d', fanz);   % was named datetime, which hid the datetime function in vox
+                % number above the highest foldmov_*: counting the files
+                % could pick a number in use (gaps) and overwrite that figure
+                movnum     = voxnextnum(pathName, 'foldmov_');   % was named datetime, which hid the datetime function in vox
                 %movfilenam = ['out/foldmov_' datetime '.avi'];
                 movfilename = fullfile(pathName, fileName);
                 % make movie file (avifile/addframe have been removed: VideoWriter)
