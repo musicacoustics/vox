@@ -24,15 +24,15 @@ modernised at the Detmold University of Music (Music Acoustics).
 
 ## Status
 
-The code base dates from 1999–2023 and is currently being cleaned up for current
-MATLAB releases. Known problems are tracked in the
-[issues](https://github.com/musicacoustics/vox/issues); some features (WAV import,
-recording, movie export) rely on functions that no longer exist in current MATLAB
-and are being replaced.
+The code base dates from 1999–2023 and was cleaned up for current MATLAB releases
+in November 2026. Removed MATLAB functions have been replaced, among them WAV
+import, recording and movie export. The tube model of the vocal tract is now
+stable. The graphics follow the light or dark figure theme. Open problems are
+tracked in the [issues](https://github.com/musicacoustics/vox/issues).
 
 ## Requirements
 
-- MATLAB (tested with R2026a; R2022b is expected to work)
+- MATLAB R2022b or newer (tested with R2022b, R2025a and R2026a)
 - Signal Processing Toolbox (`decimate`, `resample`, `fftfilt`)
 
 ## Getting started
@@ -48,19 +48,33 @@ cd vox/VOX/matlab
 vox
 ```
 
-Select the operation mode in the **Input** menu (Folds, Tract, VF*VT, Combi), set
-the parameters and press **Calc**. **Quit** stops a calculation without saving,
-**Break** stops it and keeps the results.
+VOX stays in this folder and saves its results there.
 
-On MATLAB R2025a and later with a dark desktop theme, set
-*Home > Settings > MATLAB > Appearance > Figure Theme* to *Light* until
-[#3](https://github.com/musicacoustics/vox/issues/3) is fixed.
+1. Choose the operation mode in the **Input** menu (upper right): Folds, Tract,
+   VF*VT or Combi. VOX shows a result of this mode that was calculated before, if
+   there is one. It also sets **Duration of signal** (upper left) to the default
+   of the mode: 200 ms for Folds and Combi, 20 ms for Tract. Loading files and
+   changing the configuration (checkboxes, register, vowel) keep the duration.
+2. Set the parameters and start the calculation:
+   - Folds: **Calc** in the vocal fold panel
+   - Tract: **Calc** in the vocal tract panel
+   - VF*VT: both, then the convolution is shown
+   - Combi: **Combicalc** (the Calc buttons are disabled in this mode)
+3. **Quit** stops a calculation without saving, **Break** stops it and keeps the
+   results.
 
 ## Contributing
 
-Contributions are welcome, also from students. Please work on a branch and open a
-pull request; small, focused changes are easiest to review. Changes to numerical or
-physical behaviour must be checked against reference results.
+Contributions are welcome, also from students.
+
+- Start with an issue, work on a branch and open a pull request. The template
+  asks for a test report. `main` accepts changes only through pull requests.
+- Small, focused changes are easiest to review.
+- Changes to numerical or physical behaviour must be checked against reference
+  results.
+- The test suite in [tests/](tests/README.md) runs hidden in the background:
+  `matlab -noFigureWindows -batch "cd tests; runvoxtests"`. It compares a change
+  with `main` (Code Analyzer, bit-identical regression runs, GUI sweep, tube model).
 
 Recommended setup: VS Code with the MATLAB extension, connected to MATLAB, and
 optionally an AI coding agent (Claude Code or GitHub Copilot) via the MATLAB

@@ -69,6 +69,27 @@ through the issues of this repository.
 All known problems are listed as
 [issues](https://github.com/musicacoustics/vox/issues).
 
+## Modernisation in November 2026
+
+Pull requests #25–#53, each tested against the previous state:
+
+- **Encoding:** files converted to UTF-8.
+- **Removed functions replaced:** `wavread`, `wavrecord`, `avifile`/`addframe` (now
+  `audioread`, `audiorecorder`, `VideoWriter`), `figflag`, `findstr`, `specgram` and
+  others. Missing functions added.
+- **GUI and files:** errors in GUI callbacks and file dialogs fixed; VOX stays in its
+  folder. Combi results are loaded under the name they were saved with.
+- **Tube model:** the tube model of the vocal tract is rewritten as a stable,
+  section-wise calculation, checked against a frequency-domain reference.
+- **Graphics:** readable in the light and the dark figure theme.
+- **Duration:** a default signal duration for each mode.
+- **Workflow:** a hidden test suite (`tests/`) and rules for working on several
+  machines.
+
+Except for the tube model, the results did not change. The regression runs of
+fold, tract and combi with stair segments are bit-identical with the previous
+state.
+
 ## Plans
 
 1. Clean up the MATLAB code for current releases (issues), protected by reference
