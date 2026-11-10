@@ -101,7 +101,9 @@ machines solved the same task because it existed only in a chat).
   PR comment.
 - **Merging:** only through PRs (the PR template asks for the test report). Merge small
   PRs soon and update open branches afterwards (`git merge origin/main`). Remove
-  `in progress` when the PR is merged or closed.
+  `in progress` when the PR is merged or closed. GitHub enforces this for `main` with
+  the ruleset `main` (no direct push, no force push, no deletion, 0 approvals);
+  its export is `.github/rulesets/main.json` (Settings → Rules → Rulesets → Import).
 
 ## History and known issues (analysis November 2026)
 
