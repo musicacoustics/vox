@@ -834,6 +834,10 @@ switch action
         if ischar(filename)
             value = 2; % set 2 entry as file entry
             set(Hndl.TractCalcMode, 'Value', 3);
+            % the 4 display entries of File mode, as vox('tractcalcmode') sets
+            % them; tractdispmode reads the entry with this meaning (#56)
+            set(Hndl.TractDispMode,'String',char('FRF-m','FRF-g','Imp-m','Imp-g'), ...
+                'Value',TRACTDISP);
             S = load(src);
             if isfield(S, 'data')
                 data = S.data;
@@ -1129,8 +1133,10 @@ switch action
                         vowelstring = get(Hndl.VOWEL, 'string');
                         vowelname = vowelstring(vowel, 2:3);
                         data.filename = ['out',modechar,vowelname];
-                        path = [WORKDIR,'\out'];
-                        save([path,'out',modechar,vowelname],'data');
+                        % into out/ (was [WORKDIR,'\out'] without separator:
+                        % outout_fm_a.mat in the VOX folder; the variable path
+                        % also hid the MATLAB function) (#12)
+                        save(fullfile(WORKDIR, 'out', ['out',modechar,vowelname]),'data');
                     end
                     if (value ==  1)|(value ==  4)   % fold or combi file
                         try
@@ -2076,7 +2082,7 @@ switch action
         maxy = max(s);
         miny = min(s);
         s = (2*s./(maxy-miny)-(maxy+miny)/(maxy-miny))./1.0001;
-        figure(372);plot([1:length(s)]./Fs, s);
+        figure(372);plot((1:length(s))./data.Fs, s);   % rate of the signal, not of the GUI (#57)
         [~, filename] = fileparts(filename);   % 'a.wav' -> 'a', avoids 'a.wav.wav'
         audiowrite([path filename '.wav'], s, data.Fs);
         sound(s, data.Fs);
