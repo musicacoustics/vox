@@ -33,7 +33,9 @@ Fs = 20000;
 for n = 1:18
    %   x = (1:size(importradius,1))';
    xi = (1:samples(end))';
-   r(:,n) = interp1(samples,importradius(:,n),xi,'cubic');
+   % 'pchip': what 'cubic' meant when VOX was written; current MATLAB uses
+   % cubic convolution for 'cubic' and 'spline' on a non-uniform grid (#58)
+   r(:,n) = interp1(samples,importradius(:,n),xi,'pchip');
 end
 importradius = r;
 % generated array: importradius(blocks,radius)
