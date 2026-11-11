@@ -1,7 +1,9 @@
 # Conical segments in the time domain without instability (#64)
 
-Research notes for the tube model of VOX. Status: **research, first round
-done; method to be decided by the maintainer** (section 5).
+Research notes and implementation of the tube model of VOX. Status: the
+maintainer chose **M2** (section 5); it is implemented in `ctim2`,
+`coneprepare` and `conestep` (section 6). M3 and M5 are planned for later
+(#66 with draft PR #68, #67 with draft PR #69).
 
 ## Task
 
@@ -107,7 +109,11 @@ should read `x/L` (with L = 0.5 m the cone ends at 1.5·r0 instead of rL);
 the scheme has radiation losses at the open end (coefficients 2.0881, 0.7407)
 but no wall losses.
 
-## 5. Recommendation (proposal, decision of the maintainer)
+## 5. Recommendation and decision
+
+Decision of the maintainer (11 November 2026): implement M2; M3 and M5 as
+plans for later work. The proposal as written before the decision (what was
+implemented differs in the points noted in section 6):
 
 **M2**: conical segments with plane-wave pressure and volume velocity at their
 ends; the growing part of every converging taper realized over the round
@@ -139,6 +145,123 @@ trip of its cone as a short finite impulse response.
 Steps after the decision: derivation for one cone (lossless) → test against
 `tuberef` and M5 → chain of cones with the VOX interface → losses → combi
 → stability tests (2 s impulse responses, random geometries, all vowels).
+
+## 6. Implementation of M2
+
+Files: `coneprepare.m` (geometry, kernels, coefficients), `conestep.m` (one
+time step), `ctim2.m` (tract alone and combi, internal sampling rate).
+
+### 6.1 One cone with plane waves at its ends
+
+Each tube end is a port with plane pressure waves (reference impedance
+rho·c/S of the end), as in the stairs model. Inside the cone the waves are
+spherical. With the signed distances x1, x2 = x1 + L of the ends from the
+apex (both negative for a converging cone), T = L/c, the delay D = e^(-sT),
+g1 = c/(2·x1), g2 = c/(2·x2) and gam = c/(2·x1·x2) > 0, the continuity of
+pressure and volume velocity at both ends gives exactly (lossless):
+
+    p1 = ((1 - g2·B) a1 + (r2/r1) D a2) / Delta
+    p2 = ((1 + g1·B) a2 + (r1/r2) D a1) / Delta,      Delta = 1 + gam·K
+
+a1, a2: waves entering the cone at the left and right end; p1, p2: pressures
+at the ends; leaving waves b = p - a. B and K are **finite** impulse
+responses with the length of the round trip 2T of the cone:
+
+    B(t) = 1,  K(t) = L - c·t/2   for 0 <= t < 2T
+
+The integrators 1/s of the spherical waves, which produce the growing
+exponentials at converging junctions (section 3), cancel exactly in this
+form: B = (1 - e^(-2sT))/s and K = L/s - (c/2)·B/s have no pole at s = 0. This
+is the cancellation by the returning wave of section 3, written so that it
+holds in discrete time as well. A cylinder gives g1 = g2 = gam = 0 and
+p1 = a1 + D a2, the pure delay of the stairs model. The equations also
+describe "the smallest stable unit" (section 5): it is one cone between two
+plane-wave ports; its neighbours are not needed.
+
+### 6.2 Discretisation and stability
+
+- Input interpolated linearly between two samples, kernels integrated
+  exactly (the time-interpolated convolution of the original code); the
+  delay T becomes a linear interpolation. Tube lengths need not be multiples
+  of c·dt, but every tube must be at least c·dt long.
+- Delta gives the recursion (1 + gam·K0)·p(n) = N(n) - gam·Σ K(m)·p(n-m) with
+  coefficients that are positive and do not increase with m. By the
+  Eneström-Kakeya theorem all its poles lie inside the unit circle if
+  1 + gam·K0 >= gam·K1, which fails only for very steep cones at a coarse
+  time step. `coneprepare` checks the poles of every cone; if one is not
+  inside, `ctim2` raises the internal sampling rate.
+- Passivity, checked numerically (`tests/voxtest_tubes.m`): the scattering
+  matrix of power-normalized waves of 300 random tubes (lengths 4-64 mm,
+  radii 1-21 mm, lossless and lossy) has a norm <= 1 at all frequencies. A
+  chain of passive tubes with lossless junctions, a closed glottis end and a
+  passive radiation load cannot gain energy.
+
+### 6.3 Losses
+
+The tube mode keeps the meaning of its damping value: the viscothermal
+constant xi of the original code (`data.properties.damping`, default 0.135).
+Half of the boundary-layer loss of a tube (kernel of `integralsigma`, closed
+form as in the former `tubekernel.m`, coefficients >= 0, sum 1, |H| <= 1) is
+applied at each end to the entering and to the leaving wave. The
+transmission through a tube gets exactly the loss of its length. A wave that
+the cone reflects gets the loss of the tube length as well, which is more
+than its real path. In return every tube stays passive for every xi, which is
+the condition van Walstijn (2007) found violated when losses are put inside
+the cones. A consistent formulation is M3 (#66).
+
+Not taken over: the frequency-independent damping `1 - Xi0` per sample of the
+stairs model.
+
+### 6.4 Chain, junctions and ends
+
+- Junctions: plane-wave scattering with the area ratio, as in the stairs
+  model; `radiusconvert` can produce radius jumps between tubes (when two
+  points of `newradius` are neighbours), they are handled the same way.
+- Every tube reflects a small part of a wave in the same sample (the
+  kernels start at t = 0); the transmission is delayed by T >= one sample.
+  The equations of the two tubes at a junction, of the glottis end and of
+  the mouth end are therefore solved per sample as 2x2 systems; no delay is
+  added.
+- Glottis end: closed (reflection +1), as `voctract` and `tractsig`.
+- Mouth: radiation of the stairs model. `radimp` 1: R(s) = -a/(s + a),
+  a = c/(2r), discretised as in `voctract`. `radimp` 2: piston in an infinite
+  baffle, 1 - 2·J1(kd)/(kd) + j·2·H1(kd)/(kd), as an FIR by frequency
+  sampling, |R| <= 1 enforced. `voctract` divides the Struve term by (kd)^2
+  and adds the transmitted and the reflected wave to the output; `initract`
+  (combi) fits the magnitude only with `yulewalk`; the tube model uses the
+  formula above in both modes.
+- Output: pressure at the mouth (incident plus reflected wave), as
+  `tractsig`.
+
+### 6.5 Interface
+
+| | stairs | tubes before (#45) | tubes now (M2) |
+|---|---|---|---|
+| tract alone, source | pressure wave 1 at the closed glottis end | `zcar/(rho*c)` ≈ 0.91 | pressure wave 1 at the closed glottis end |
+| tract alone, output | `y` mouth pressure, `z` near the glottis | `y` mouth, `z` glottis end | `y` mouth pressure, `z` glottis pressure |
+| radiation | `radimp` 1 or 2 | double pole of `openend.m` | `radimp` 1 or 2 (6.4) |
+| combi, source | `out_vf_voc·2·Ag/(Ag+Av)` | `zcar/(rho*c)·out_vf_voc` | `out_vf_voc·2·Ag/(Ag+Av)` |
+| combi, feedback | `Infold.pin_gl_ac = out_vf_voc·(Ag-Av)/(Ag+Av)` | not stored | the same value, stored in `Infold.pin_gl_ac` |
+| noise sources | added at every junction | ignored | ignored (as before) |
+
+`ctim2` gets two more inputs, `glotarea` and `radimp`; `combicalc` passes
+`glotarea` and `radimproutine`, `vox('tractcalc')` passes
+`data.properties.radimp`.
+
+### 6.6 Open points
+
+- `pin_gl_ac` of `tractsig` contains only the part of the fold signal that
+  the glottis reflects: `ppT.junction(1)` is never set, so no wave returning
+  from the tract reaches the folds (with `Infold.flags.VOC = 0`, the default,
+  the value is not used at all). The tube model returns the same value, so
+  that both models act alike; a real feedback would change both.
+- The damping value of the GUI is the per-sample damping `Xi0` (0.005135) in
+  the stairs mode and the viscothermal constant `XI` (0.135) in the tube
+  mode, but it is set only when a vowel is initialised: after switching from
+  stairs to tubes the tubes run with xi = 0.005, almost without wall losses.
+- Default `MAXSEGMENTS = 2`: the tube model of a vowel consists of only two
+  cones unless more are set in the tract editor.
+- Noise sources (`PARNOISE`) are not fed into the tube model.
 
 ## References
 

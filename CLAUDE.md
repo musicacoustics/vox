@@ -17,9 +17,10 @@ accessible; do not push there).
 - `vox.m` – main GUI controller (one big `switch action`), `voxgui.m` builds the GUI
 - `foldsig.m` → `siggi.m` (script) – vocal fold time loop; forces in `aerforc.m`,
   `contforc.m`, `cplforc.m`, `dampforc.m`; integration in `deq16m.m`
-- `tractsig.m`, `voctract.m` – vocal tract, stairs; `ctim2.m` with `tubeprepare.m`
-  and `tubekernel.m` – vocal tract, tubes (staircase of cylindrical sub-tubes;
-  `propagator.m`, `preparation.m` etc. are the former, unstable formulation, unused)
+- `tractsig.m`, `voctract.m` – vocal tract, stairs; `ctim2.m` with `coneprepare.m`
+  and `conestep.m` – vocal tract, tubes (conical segments, see
+  `docs/conical-tubes.md`; `propagator.m`, `preparation.m` etc. are the former,
+  unstable formulation, unused)
 - `combicalc.m` – coupled fold/tract simulation
 - `noisesig.m` – turbulence noise
 - `foldmod.m`, `areas3.m` – interactive editors for fold and tract geometry
