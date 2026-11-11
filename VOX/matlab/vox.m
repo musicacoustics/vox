@@ -900,7 +900,8 @@ switch action
         else
             areas3('tubecalc');
             data = get(Hndl.figureNumber, 'UserData');
-            [data.y, data.z, PARCTIM] = ctim2(data.tubes, TMAX, data.properties.damping);
+            [data.y, data.z, PARCTIM] = ctim2(data.tubes, TMAX, data.properties.damping, ...
+                0, [], 0, [], [], data.properties.radimp);   % radiation as voctract
             data.out.t = PARCTIM.out.t;
             data.out.segments = PARCTIM.out.segments;
             data.out.h = PARCTIM.out.y;

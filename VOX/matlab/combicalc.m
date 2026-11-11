@@ -402,9 +402,12 @@ if n_samples > 0
                 end
                 areas3('tubecalc');
                 sizetubes = size(data.tubes,1);
+                % coupling to the folds as in the stairs branch (#50):
+                % glottal area, pin_gl_ac; radiation as in tractsig
                 [p_out_mouth, pin_gl_ac, PARCTIM] ...
                     = ctim2(data.tubes, 0, data.properties.damping, ii, PARCTIM, ...
-                    out_vf_voc, PARNOISE);
+                    out_vf_voc, PARNOISE, glotarea, radimproutine);
+                Infold.pin_gl_ac = pin_gl_ac;
                 y_out_all(:,ii) = PARCTIM.p_boundaries;   % tube ends, glottis to mouth (sizetubes+1)
                 if (GRONT ==  1) | (GRONT ==  4)
                     if voxfigflag('Wave propagation in the vocal tract',1) ==  1
