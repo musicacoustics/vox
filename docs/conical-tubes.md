@@ -1,6 +1,7 @@
 # Conical segments in the time domain without instability (#64)
 
-Research notes for the tube model of VOX. Status: **research in progress**.
+Research notes for the tube model of VOX. Status: **research, first round
+done; method to be decided by the maintainer** (section 5).
 
 ## Task
 
@@ -18,24 +19,145 @@ Goal: a stable time-domain implementation of conical segments, with
 
 ## 1. What happened in the original code
 
-(to be filled in)
+- Origin: the multiconvolution method of the Barcelona group for woodwind
+  bores (Martínez, Agulló, Cardona 1988; Barjau, Keefe, Cardona 1999),
+  ported from Mathematica (Catalan names in the comments: `canvitram` =
+  change of tube, `extremtancat`/`extremobert` = closed/open end, holes and
+  fingerings of the woodwind model are still in `preparation.m`). The tubes
+  are built from the radius vector of the stairs model (`areaintpol`,
+  `radiusconvert`, 2000): piecewise linear radius between selected nodes.
+- Every taper change (`middleend.m`), the closed end (`closedend.m`) and the
+  input end (`inputend.m`) has a reflection consisting of an instantaneous
+  part and an exponential part `exp(nu*t)`, discretised with the
+  time-interpolated convolution (`k10`, `k11`, `cosaexp`). Wall losses enter
+  through a convolution kernel in every segment (`integralsigma.m`).
+- The delay lines were advanced with `rotateright`, which is not in the
+  repository; in the repository state it had been replaced by
+  `bitshift(x,-1)`, which stops with an error at the first sample in every
+  MATLAB release (#28). This is a coding error, not a property of the model.
+- With the shift repaired (#34) the original model runs. After 20 ms the
+  signal was still finite and plausible; afterwards it grows exponentially
+  (vowel /a/: 5·10^27 after 100 ms). This agrees with the recollection of
+  about 15 ms until the instability is visible. Two causes (#45):
+  1. the `quadl` integration of the loss kernel sums to 1.10 instead of ≤ 1:
+     every pass through a segment amplifies by 10 %, also in a cylinder;
+  2. the exponential parts grow (`nu > 0`) at taper changes towards a
+     smaller or more negative taper and at the closed end of a converging
+     cone (section 3).
 
-## 2. Interface of the stairs model
+## 2. Interface of the stairs model (to be matched)
 
-(to be filled in)
+| | stairs (`voctract`, `tractsig`) | tubes (original `ctim2`) |
+|---|---|---|
+| geometry | radius vector `data.radius`, spacing `data.spacing` | cones through nodes of the same radius vector: same first (glottis) and last (mouth) radius |
+| input, combi | pressure wave `out_vf_voc*2*Ag/(Ag+Av)` into the first section (`Ag` glottal area, `Av` first tract area); glottis end reflects with the area ratio | `zcar*out_vf_voc/(rho*c)` with `zcar = 412` (no area), i.e. about 10× louder (#50) |
+| input, tract alone | pressure impulse at the glottis end, closed glottis (reflection +1) | velocity converted with `zcar` (`inputend`) |
+| output | pressure at the mouth, with radiation filter (`radimp` 1 or 2) | pressure at the end of the last tube |
+| feedback to the folds | pressure at the glottis `pin_gl_ac` | none (#50) |
+
+A new conical model should use the plane-wave pressure and volume velocity
+at its two ends, so that the glottis coupling, the closed end, the radiation
+filter, the output and the feedback can be taken over from the stairs model
+unchanged. This also settles #50.
 
 ## 3. Why conical segments become unstable
 
-(to be filled in)
+In a cone the pressure waves are spherical and scale with 1/r (r = distance
+from the apex). At a junction of two cones (wavefront areas S1, S2,
+B = S2/S1, apex distances r1, r2) the scattering contains, besides the
+area-ratio coefficients of the Kelly-Lochbaum junction, a first-order filter
+(van Walstijn 2007, eq. 7-10):
+
+    Rj(s) = -alpha/(s + alpha),  alpha = (gamma2*S2 - gamma1*S1)/(S2 + S1),
+    gamma = c/r  (gamma = 0 for a cylinder)
+
+It is stable only if alpha > 0, i.e. 1/r2 > B/r1. For a taper change towards
+a smaller (more negative) taper alpha < 0, and the impulse response grows like
+exp(|alpha| t). This holds for about half of all cone combinations (Välimäki
+and Karjalainen 1994). The same applies to the junction of a cylinder with a
+converging cone: pole at s = c/(2·xi), xi = distance to the apex (Smith, PASP).
+
+The continuous-time model of the whole bore is nevertheless stable (Gilbert,
+Kergomard, Polack 1990; Agulló, Barjau, Martínez 1992): the growing part is
+cancelled by the wave that returns from the other end of the cone. In discrete
+time the cancellation is not exact, and the remainder grows (Smith; van
+Walstijn and Smith 1998).
+
+van Walstijn (2007, sec. 2.1 and 5) reports from many tests: with the
+bilinear transform or the time-interpolated convolution, piecewise conical
+bores **without** losses in the conical sections showed no growth; **with**
+loss filters in the conical sections they became unstable. A probable cause:
+the junctions are formulated with the lossless propagation constant, the
+segments with the lossy one, so the returning wave no longer cancels the
+growing part. The original VOX model has exactly this combination (loss
+kernel in every cone, lossless junction terms), plus the kernel gain of 1.10.
 
 ## 4. Methods in the literature
 
-(to be filled in)
+| | method | stable because | fits VOX | effort |
+|---|---|---|---|---|
+| M1 | **Switched instances / TIIR** (van Walstijn and Smith 1998; van Walstijn 2007, sec. 3.3; Wang and Smith 1997): keep the unstable structure, run two copies, reset the idle copy every N samples (N longer than the impulse response) | the output only depends on the last N samples | keeps the original structure; the internal growth within N must stay small, which van Walstijn found not always true for narrow cones with high losses (vocal tract constrictions); switching logic | small |
+| M2 | **Finite-time realization of the growing part** (Välimäki and Karjalainen 1994: vocal tract of conical sections; van Walstijn and Smith 1998; Mignot, Hélie, Matignon 2008: stable minimal realization of a convergent cone): the growing exponential is needed only until the cancelling wave returns, i.e. over the round trip 2L/c of the cone; it is computed as a finite impulse response over that time | no unstable recursion is left | conical segments as in the original idea; with plane-wave pressure and volume velocity at the segment ends the junctions, the glottis end, the radiation and the output are those of the stairs model; at 88.2 kHz a 2-5 cm cone has a round trip of 10-26 samples, so the finite response is a short direct convolution (no round-off growth, no resets) | medium |
+| M3 | **Webster-Lokshin waveguides in a stabilised standard form** (Hélie, Mignot, Matignon 2007; Mignot, Hélie, Matignon 2010a/b; Mignot 2009, stability for N cones): every pipe piece as two delays plus six transfer functions with two free internal reflections, chosen stable | all sub-systems stable by construction, losses (Lokshin) and curvature included | most complete physics; transfer functions with fractional (diffusive) parts must be approximated by fitted recursive filters | large |
+| M4 | **Plane-wave reflection and transmission functions per element** (Ducasse 2003) | no unstable element | assumes zero instantaneous reflection to avoid delay-free loops: inaccurate at strong discontinuities unless the sample rate is high; convolutions | medium |
+| M5 | **Energy-stable finite differences of the Webster equation** (Bilbao 2009; Bilbao and Chick 2013; maintainer's workshop code `WebsterEquationMK_m2.m`, Desvages and Kob, Detmold 2017) | a discrete energy cannot grow (Courant number ≤ 1) | stable for any profile including cones, velocity input and pressure output as wanted; but a grid with spacing h = c/Fs (3.9 mm at 88.2 kHz), not segments: in cost and structure close to the stairs model | small (code exists) |
 
-## 5. Recommendation
+Notes on the workshop code (M5): the cone profile `r = r0 + (rL - r0)*x`
+should read `x/L` (with L = 0.5 m the cone ends at 1.5·r0 instead of rL);
+the scheme has radiation losses at the open end (coefficients 2.0881, 0.7407)
+but no wall losses.
 
-(to be filled in)
+## 5. Recommendation (proposal, decision of the maintainer)
+
+**M2**: conical segments with plane-wave pressure and volume velocity at their
+ends; the growing part of every converging taper realized over the round
+trip of its cone as a short finite impulse response.
+
+- Junctions, glottis coupling (`2*Ag/(Ag+Av)`, area-dependent glottis end),
+  radiation filter, output pressure at the mouth and the feedback
+  `pin_gl_ac` taken over from the stairs model: same radii, same pressure
+  and volume velocity at input and output (#50 solved with it).
+- Losses: first the same damping as the stairs model (comparability), then
+  the viscothermal kernel of #45 (`tubekernel`, sums to 1), included
+  consistently in segments and junctions (van Walstijn 2007, sec. 5; M3 as
+  the reference formulation).
+- **M5 as an independent time-domain reference** (the workshop code turned
+  into a test function, same piecewise linear profile, same input and
+  output), together with the existing frequency-domain reference of exact
+  cones (`tests/voxtest_tubes.m`, `tuberef`) and the stairs model for the
+  same vowel.
+- Open technical point, to be settled in the derivation: which group of
+  elements is the smallest stable unit (one cone between two junctions, or a
+  cone together with its neighbours, cf. "smallest enclosing stable model
+  component", van Walstijn and Smith 1998; N cones: Mignot 2009, p. 91-95).
+- M1 is the fallback if M2 proves too complex: it keeps the original code
+  (with the kernel of #45), but it does not remove the instability, it only
+  limits its effect.
+- The staircase of #45 (`tubeprepare`, `tubekernel` in `ctim2`) is replaced;
+  the former files stay for reference (#19).
+
+Steps after the decision: derivation for one cone (lossless) → test against
+`tuberef` and M5 → chain of cones with the VOX interface → losses → combi
+→ stability tests (2 s impulse responses, random geometries, all vowels).
 
 ## References
 
-(to be filled in)
+- Agulló, J., Barjau, A., Martínez, J. (1992). On the time-domain description of conical bores. J. Acoust. Soc. Am. 91(2), 1099-1105.
+- Barjau, A., Keefe, D. H., Cardona, S. (1999). Time-domain simulation of acoustical waveguides with arbitrarily spaced discontinuities. J. Acoust. Soc. Am. 105(5), 1951-1964.
+- Benade, A. H. (1988). Equivalent circuits for conical waveguides. J. Acoust. Soc. Am. 83(5), 1764-1769.
+- Bilbao, S. (2009). Numerical Sound Synthesis: Finite Difference Schemes and Simulation in Musical Acoustics. Wiley.
+- Bilbao, S., Chick, J. (2013). Finite difference time domain simulation for the brass instrument bore. J. Acoust. Soc. Am. 134(5), 3860-3871. https://doi.org/10.1121/1.4822479
+- Ducasse, E. (2003). A physical model of a single-reed wind instrument, including actions of the player. Computer Music J. 27(1), 59-70.
+- Gilbert, J., Kergomard, J., Polack, J. D. (1990). On the reflection functions associated with discontinuities in conical bores. J. Acoust. Soc. Am. 87(4), 1773-1780.
+- Hélie, T., Mignot, R., Matignon, D. (2007). Waveguide modeling of lossy flared acoustic pipes: derivation of a Kelly-Lochbaum structure for real-time simulations. IEEE WASPAA, 267-270.
+- Martínez, J., Agulló, J., Cardona, S. (1988). Conical bores. Part II: Multiconvolution. J. Acoust. Soc. Am. 84(5), 1620-1627.
+- Mignot, R., Hélie, T., Matignon, D. (2008). Stable realization of a delay system modeling a convergent acoustic cone. 16th Mediterranean Conf. on Control and Automation (MED'08), Ajaccio, 1574-1579. https://hal.science/hal-01106362
+- Mignot, R. (2009). Réalisation en guides d'ondes numériques stables d'un modèle acoustique réaliste pour la simulation en temps-réel d'instruments à vent. PhD thesis, Télécom ParisTech. https://theses.hal.science/tel-00456997
+- Mignot, R., Hélie, T., Matignon, D. (2010a). Digital waveguide modeling for wind instruments: building a state-space representation based on the Webster-Lokshin model. IEEE Trans. Audio, Speech, Lang. Process. 18(4), 843-854. https://oatao.univ-toulouse.fr/3901/
+- Mignot, R., Hélie, T., Matignon, D. (2010b). Acoustic modelling of a convex pipe adapted for digital waveguide simulation. DAFx-10, Graz. https://dafx.de/paper-archive/2010/DAFx10/MignotHelieMatignon_DAFx10_P14.pdf
+- Smith, J. O. Physical Audio Signal Processing (online book), sections "Conical Acoustic Tubes" and "Cylinder with Conical Cap". https://ccrma.stanford.edu/~jos/pasp/Cylinder_Conical_Cap.html
+- Välimäki, V., Karjalainen, M. (1994). Digital waveguide modeling of wind instrument bores constructed of truncated cones. Proc. ICMC 1994, Århus, 423-430.
+- Välimäki, V., Karjalainen, M. (1994). Improving the Kelly-Lochbaum vocal tract model using conical tube sections and fractional delay filtering techniques. Proc. ICSLP 1994, Yokohama, 615-618. http://users.spa.aalto.fi/vpv/publications/icslp94.pdf
+- van Walstijn, M., Smith, J. O. (1998). Use of truncated infinite impulse response (TIIR) filters in implementing efficient digital waveguide models of flared horns and piecewise conical bores with unstable one-pole filter elements. Proc. ISMA 1998, Leavenworth, 309-314. https://ccrma.stanford.edu/~jos/tiirts/tiirts.pdf
+- van Walstijn, M. (2007). Wave-based simulation of wind instrument resonators. IEEE Signal Processing Magazine 24(2), 21-31. https://pureadmin.qub.ac.uk/ws/files/2151869/paper.pdf
+- Wang, A. L., Smith, J. O. (1997). On fast FIR filters implemented as tail-canceling IIR filters. IEEE Trans. Signal Process. 45(6), 1415-1427.
