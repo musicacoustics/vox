@@ -390,6 +390,10 @@ switch action
             data.filename = filename;
             data.pathname = pathname;
             Infold = data.Infold;%mo
+            % keep register 0 selected above: the loaded fold signal is the
+            % source, Combi uses it instead of computing the folds again;
+            % data.Infold would restore the register of the file (#62)
+            Infold.register = 0;
             try
                 figdata = data.figdata;%mo
                 figdata.OldData = 1;
