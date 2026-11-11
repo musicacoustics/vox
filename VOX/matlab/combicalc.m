@@ -178,6 +178,17 @@ if n_samples > 0
                 end; % of try - catch
                 out_vf_trach = 0;
                 minarea      = glotareadefault;
+                % the fold signal is the pressure of the plane wave that the
+                % glottal flow sends into the vocal tract, p = U*rho*c/A
+                % (press.m: pinak = sum_u*z_voc_1; params.m: z_voc_1 =
+                % rho*c/(pi*rvoc^2)), so the flow follows exactly with the
+                % rvoc of the fold file: U = p*A/(rho*c) (#49)
+                if isfield(foldfile.data, 'Infold') && isfield(foldfile.data.Infold, 'rvoc')
+                    filervoc = foldfile.data.Infold.rvoc;
+                else
+                    filervoc = rvocdefault/1000;   % default of iniinfold [m]
+                end
+                fileflowfac = pi*filervoc^2/(rho*c);
             end;  % of if Infold.register ==  0
 
             % video stuff
@@ -220,6 +231,14 @@ if n_samples > 0
             QUIT     = 0;
             glotarea = 0;
         end   % of if combicalc init
+
+        % fold signal from a file shorter than Duration: stop at its end and
+        % keep the result, as Break does (was: index error in fileout(ii))
+        if Infold.register ==  0 && ii > numel(fileout)
+            disp(sprintf('combi: the fold signal of the file ends after %d samples (%.1f ms), the calculation stops there', ...
+                numel(fileout), 1000*numel(fileout)/Fs)); %#ok<DSPSP>
+            break
+        end
 
 %        Hndl.mainwaitfigure = waitbar(ii/n_samples, Hndl.mainwaitfigure);
         Hndl.mainwaitfigure = voxwaitbar(ii/n_samples);
@@ -296,6 +315,9 @@ if n_samples > 0
         % == == == == == == == == == == == == == == == == == == == == == == == == == == =
         if Infold.register ==  0   % use sample from fold file
             out_vf_voc = fileout(ii);
+            % glottal flow of this sample (no foldsig, so PARFOLD is empty);
+            % used by noisesig and the display of sum_uccm (#49)
+            PARFOLD.var.flow = out_vf_voc*fileflowfac;
         else
             [out_vf_voc, out_vf_trach, minarea, PARFOLD] ....
                 = foldsig(PARFOLD);
