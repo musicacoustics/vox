@@ -4,9 +4,9 @@ function voxtest_combifile(voxdir)
 %   - Fold Calc (30 ms) and Combicalc with calculated folds (no coupling).
 %     The combi runs again up to the sample with the largest fold signal,
 %     where the glottis is open, and keep the flow of foldsig there.
-%   - Fold Load of the fold result (writes out_vf_n00000), then the register
-%     button switched off (register 0): Combicalc takes the fold signal from
-%     the file. Checks: no error, the same fold signal, and the flow derived
+%   - Fold Load of the fold result (writes out_vf_n00000) selects register 0
+%     (#62): Combicalc takes the fold signal from the file.
+%     Checks: no error, the same fold signal, and the flow derived
 %     from it (p*pi*rvoc^2/(rho*c)) equals the flow of foldsig
 %   - the same with noise, and with noise and GRON (display of the flow)
 %   - Duration longer than the file: the calculation stops at the end of
@@ -51,8 +51,9 @@ vox('foldload');
 rmpath(stub);
 rmdir(stub, 's');
 setinput(4);
-set(Hndl.modal, 'value', 0); vox('modal');
-check('register button off: register 0 (fold signal from the file)', Infold.register == 0);
+check('Fold Load selects register 0 (fold signal from the file), register buttons off (#62)', ...
+    Infold.register == 0 && get(Hndl.modal, 'value') == 0 && get(Hndl.head, 'value') == 0 ...
+    && get(Hndl.falsett, 'value') == 0);
 
 cases = {'no noise', 0, 0; 'noise', 1, 0; 'noise and GRON', 1, 1};
 for k = 1:size(cases, 1)
