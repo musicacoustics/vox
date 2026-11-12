@@ -14,7 +14,7 @@ end
 lines=length(H_calc)*2;
 df=data.Fs/lines;
 f_calc=0:data.Fs/lines:(lines/2-1)*df;
-if BG load('background');
+if BG load(voxoutdir('background'));   % vox('toback') saves it in out/ (#29)
    if TRACTDISP == 1 | TRACTDISP == 2
       bg.y=bg.y/max(abs(bg.y))*max(abs(data.y));
       H_calc_bg=make_fft(bg.y,lines);
