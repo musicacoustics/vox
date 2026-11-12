@@ -38,6 +38,9 @@ if n_samples > 0
             end
             timeindex = 1;  % initialize timeindex for batch
             if BATCH % called only once
+                % values before the run: the modulation started from the
+                % last modulated values of the previous run before (#74)
+                batchbase = struct('tvakt', Infold.tvakt, 'ptg', Infold.ptg, 'radius', data.radius);
                 modvar.actstr = Infold.tvakt;
                 modvar.subpre = Infold.ptg;
                 modvar.radius = data.radius;
@@ -444,6 +447,19 @@ if n_samples > 0
             'values', ctrlstate.values(1:nused, :));
     elseif isfield(data, 'control')
         data = rmfield(data, 'control');   % of a loaded controlled result
+    end
+    % batch mode: active stress, subglottal pressure and tract radii back to
+    % the values before the run; they kept the last modulated values, and
+    % every further run started from there (#74)
+    if BATCH && exist('batchbase', 'var')
+        Infold.tvakt = batchbase.tvakt;
+        Infold.ptg   = batchbase.ptg;
+        data.radius  = batchbase.radius;
+        batchdata = get(Hndl.figureNumber, 'UserData');
+        batchdata.radius = batchbase.radius;
+        set(Hndl.figureNumber, 'UserData', batchdata);
+        vox('refreshptg', 'strsli');
+        vox('refreshtvakt', 'strsli');
     end
 
     if ishghandle(Hndl.mainwaitfigure)   % vox('break') may have closed it already

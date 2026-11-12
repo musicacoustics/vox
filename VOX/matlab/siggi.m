@@ -42,6 +42,15 @@ foldcons;
 
 iscombi = Infold.combicalc; % flag for combimode
 
+% Fold Calc: batch modulation and control file vary pressure and tension
+% over time (vox('foldcalc') passes them in Parfold.timecontrol, #74);
+% the values of the first step also hold for the initialisation, as in
+% combicalc
+foldcontrol = [];
+if ALONE && isstruct(Parfold) && isfield(Parfold, 'timecontrol')
+    foldcontrol = voxfoldcontrol('apply', Parfold.timecontrol, 1);
+end
+
 if Infold.k == 1        % first call: initialization
     params;
     inifold;
@@ -88,6 +97,10 @@ for n = 1 : 1 : num_it
     if BRK == 1
         disp('stopping');
         break
+    end
+
+    if ~isempty(foldcontrol) && n > 1   % pressure and tension of this step (#74)
+        foldcontrol = voxfoldcontrol('apply', foldcontrol, n);
     end
 
     params;

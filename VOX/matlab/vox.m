@@ -478,9 +478,25 @@ switch action
             end
         end
 
+        % batch modulation and control file: subglottal pressure and vocal
+        % fold tension over time, applied by siggi in every step (#74);
+        % [] without them (Fold Calc as before)
+        foldcontrol = voxfoldcontrol('init', floor(Infold.calctime*Fs));
+        if ~isempty(foldcontrol)
+            PARFOLD = struct('timecontrol', foldcontrol);
+            foldcleanup = onCleanup(@() voxfoldcontrol('restore', foldcontrol)); %#ok<NASGU> also after an error
+        end
+
         % (no access to the parameters from outside the function)
         QUIT = 0;
         [out_vf_voc, out_vf_trach, minarea, PARFOLD, figdata] = foldsig(PARFOLD);
+        if ~isempty(foldcontrol)   % values back; foldsig returns the trace
+            if isstruct(PARFOLD) && isfield(PARFOLD, 'timecontrol')
+                foldcontrol = PARFOLD.timecontrol;
+            end
+            PARFOLD = [];
+            voxfoldcontrol('restore', foldcontrol);
+        end
         if QUIT ==  0
             filename = ['out_vf_n' num2str(Infold.register) ...
                 num2str(TRACH) num2str(FOLD) num2str(TRACT) num2str(NOISE)];
@@ -490,6 +506,17 @@ switch action
             data.Infold   = Infold;
             data.figdata  = figdata;%mo
             data.filename = filename;
+            if ~isempty(foldcontrol)   % pressure and tension per step
+                data.control = struct('file', foldcontrol.file, 'batch', foldcontrol.batch, ...
+                    'names', {{'ptg', 'tvakt'}}, 'values', foldcontrol.trace(1:numel(out_vf_voc), :));
+            end
+            % the batch settings, as a combi result has them: displaying
+            % the result sets the batch window to them (vox('input')); a
+            % fold result without them set the window back to the defaults
+            ud = get(Hndl.figureNumber, 'UserData');
+            if isfield(ud, 'batch')
+                data.batch = ud.batch;
+            end
             save(voxoutdir(filename), 'data');   % into out/ (#29)
             SD_NAMES(1,:) = [filename '  '];
             if get(Hndl.INPUT, 'value') ~=  3 % if not conv. view
@@ -991,7 +1018,7 @@ switch action
             set(Hndl.TractCalc,  'Enable', 'off')
             set(Hndl.combi,      'Enable', 'off')
             set(Hndl.ctrl,       'Enable', 'off')
-            set(Hndl.FE,         'Enable', 'off')
+            set(Hndl.FE,         'Enable', 'on')    % control file: pressure, tension (#74)
             set(Hndl.combiload,  'Enable', 'off')
             if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');

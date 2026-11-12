@@ -332,15 +332,45 @@ restore), `voxcontrolfile.m` (choice in the main window), `voxvibrato.m`;
   result names `out_B…`/`out_cF…_<nnn>` are gone; results with a control
   file are loaded like all others.
 
+### Fold Calc and the batch mode
+
+Maintainer (12 November 2026): in Fold Calc the subglottal pressure and the
+vocal fold tension shall be variable over time, in Combi all three
+(pressure, tension, vocal tract / mouth opening).
+
+- `voxfoldcontrol` prepares for Fold Calc the batch modulation (active
+  stress, subglottal pressure; `controlfile('call')` as in `combicalc`) and
+  the control file (pressure, tension, positions; the mouth opening is
+  ignored with a warning, the batch modulation of the vocal tract with a
+  message). `vox('foldcalc')` passes it in `PARFOLD.timecontrol`; `siggi`
+  applies the values in every step (the first step also for the
+  initialisation, as in `combicalc`) and records pressure and tension
+  (`data.control` of the fold result). Without batch and control file Fold
+  Calc is unchanged. The checkbox *Control* is enabled in Input *Folds*.
+- Before #74 the batch mode left the last modulated values of stress,
+  pressure (and the tract radii) in VOX; every further run started from
+  them, so the values drifted from run to run (e.g. 980 → 1182 Pa,
+  40 → 48 kPa, both × 1.206). Now they are set back after the run, in
+  Combicalc and in Fold Calc: the first run gives the same result as
+  before, further runs the same as the first.
+- A fold result now stores the batch settings (`data.batch`), as a combi
+  result does. Displaying a fold result without them set the open batch
+  window back to the defaults (5.5 Hz, 5 %), so a second Fold Calc used
+  other values than the first.
+- Unchanged: every display of a result (`vox('input')`, e.g. after a
+  change of the Input mode) sets the open batch window to the batch
+  settings of that result (frequency, depth, segments); the choice of the
+  values to be modified is only switched on there, never off. Set the
+  batch values after choosing the Input mode.
+
 ### Not changed
 
-- The batch mode (`controlfile.m`, periodic or linear modulation of
-  stress, pressure and the first 10 tract radii) is not changed; a
-  control file is applied after it.
+- The batch modulation itself (`controlfile.m`, periodic or linear
+  modulation of stress, pressure and the first 10 tract radii at the
+  glottis end) is not changed; a control file is applied after it.
 - The old FE mode also set the spring constants `k1 = 2`, `k2 = 4.5` while
   reading a file; this is not taken over (they keep the values of the
   register).
-- Fold-only calculations (Fold Calc) do not read control files.
 - Every display of a result takes pressure and tension from that result
   (`vox('input')`); in the parameter mode set the pressure last before
   *save settings*.

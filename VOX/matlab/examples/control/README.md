@@ -1,20 +1,37 @@
 # Control files
 
-A control file varies parameters of VOX over time during a **combi**
-calculation: the suspension of the voice apparatus (positions of the ends
-of the vocal folds) and the vocal folds (subglottal pressure, vocal fold
-tension), and the mouth opening. External programs or parameter files can
-control VOX this way, e.g. to produce a vibrato (#74). The FE mode of 2010
-did this for the positions; its files (`FE*.txt`) are control files as well.
+A control file varies parameters of VOX over time during a calculation:
+the suspension of the voice apparatus (positions of the ends of the vocal
+folds) and the vocal folds (subglottal pressure, vocal fold tension), and
+in a combi calculation also the mouth opening. External programs or
+parameter files can control VOX this way, e.g. to produce a vibrato (#74).
+The FE mode of 2010 did this for the positions; its files (`FE*.txt`) are
+control files as well.
+
+| calculation | varied over time |
+|---|---|
+| **Fold Calc** (Input *Folds*) | subglottal pressure, vocal fold tension, positions of the vocal folds |
+| **Combicalc** (Input *Combi*) | the same and the mouth opening |
+
+The **batch mode** (checkbox *Batch*, window "controlfile") modulates the
+active stress, the subglottal pressure and, in Combi, the first 10 radii of
+the vocal tract periodically or as a linear ramp, without a file. It acts in
+Fold Calc (stress, pressure) and in Combicalc (all three). A control file is
+applied after it.
 
 ## Using a control file
 
-- **Main window:** Input *Combi*, checkbox **Control**, then choose the file
-  in the list below it (files in `examples/control/` and `out/`, or
-  *other file...*). **Combicalc** applies it. The result is saved as the
-  usual combi name plus the name of the control file, e.g.
-  `out/out_cs_a10000_vibrato_ptg.mat`; the values used per sample are in
-  `data.control`.
+- **Main window:** Input *Folds* or *Combi*, checkbox **Control**, then
+  choose the file in the list below it (files in `examples/control/` and
+  `out/`, or *other file...*). **Calc** (folds) or **Combicalc** applies it.
+  A combi result is saved as the usual combi name plus the name of the
+  control file, e.g. `out/out_cs_a10000_vibrato_ptg.mat`, a fold result
+  under its usual name. The values used are in `data.control` (Combi: the
+  columns of the file per sample; Fold Calc: pressure and tension per step).
+- The display of the fold calculation (*GRON*) shows the subglottal pressure
+  over time (p_s0, black); it shows the last 10 to 30 ms, so a vibrato of
+  5.5 Hz (period 182 ms) appears there as a slow drift; the whole course is
+  in `data.control`.
 - **Parameter mode (Para):** *save settings* stores the chosen control file
   with the profile; *start* applies it for that profile. *load existing
   file* with a `.txt` chooses a control file.

@@ -19,6 +19,9 @@ if ALONE
    out_vf_voc   = y;
    out_vf_trach = ysub;
    Parfold      = [];
+   if ~isempty(foldcontrol)   % batch/control file: back to vox('foldcalc') with the trace (#74)
+      Parfold = struct('timecontrol', foldcontrol);
+   end
 else
    out_vf_voc   = pinak;   % statt pin!
    out_vf_trach = ps;

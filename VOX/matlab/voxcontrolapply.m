@@ -1,5 +1,5 @@
-function S = voxcontrolapply(action, S, ii)
-%VOXCONTROLAPPLY Apply a control file during a combi calculation.
+function S = voxcontrolapply(action, S, ii, mode)
+%VOXCONTROLAPPLY Apply a control file during a calculation.
 %   S = VOXCONTROLAPPLY('init', FILE, T) reads the control file FILE
 %   (voxcontrolread), interpolates its columns linearly at the times T [s]
 %   of the samples (before the first and after the last row the first and
@@ -19,8 +19,11 @@ function S = voxcontrolapply(action, S, ii)
 %   The mouth opening scales the radii of the last 1 cm of the vocal tract;
 %   only the stairs model reads the area function in every time step, so
 %   the column mouth is ignored with tubes (with a warning).
+%   S = VOXCONTROLAPPLY('init', FILE, T, 'fold') is the same for a fold
+%   calculation (Fold Calc, voxfoldcontrol): there is no vocal tract, the
+%   column mouth is ignored (with a warning).
 %
-%   See also voxcontrolread, combicalc.
+%   See also voxcontrolread, combicalc, voxfoldcontrol.
 
 global Infold Hndl %#ok<GVMIS> the vocal fold model and the GUI data
 
@@ -57,6 +60,11 @@ switch action
                     add('wmaxla_x', 'wmaxla', 1, v);
                     add('wmaxra_x', 'wmaxra', 1, v);
                 case 'mouth'
+                    if nargin >= 4 && strcmp(mode, 'fold')
+                        warning('vox:control', ['Control file %s: the mouth opening needs the ' ...
+                            'vocal tract (Combi); it is ignored in Fold Calc.'], file);
+                        continue
+                    end
                     if get(Hndl.TractCalcMode, 'value') ~= 1
                         warning('vox:control', ['Control file %s: the mouth opening needs the ' ...
                             'stairs model; it is ignored.'], file);
