@@ -255,10 +255,12 @@ stairs model.
   from the tract reaches the folds (with `Infold.flags.VOC = 0`, the default,
   the value is not used at all). The tube model returns the same value, so
   that both models act alike; a real feedback would change both.
-- The damping value of the GUI is the per-sample damping `Xi0` (0.005135) in
-  the stairs mode and the viscothermal constant `XI` (0.135) in the tube
-  mode, but it is set only when a vowel is initialised: after switching from
-  stairs to tubes the tubes run with xi = 0.005, almost without wall losses.
+- The damping value of the GUI (`data.properties.damping`) has two
+  meanings: the per-sample damping `Xi0` (0.005135) of the stairs mode and
+  the viscothermal constant `XI` (0.135) of the tube mode. When the mode is
+  switched, VOX loads the last result file of that mode (with the damping
+  stored there) or, without one, sets the default of the mode
+  (`datainit`). The value in use is shown in the tract editor.
 - Default `MAXSEGMENTS = 2`: the tube model of a vowel consists of only two
   cones unless more are set in the tract editor.
 - Noise sources (`PARNOISE`) are not fed into the tube model.
