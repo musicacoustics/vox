@@ -1,7 +1,13 @@
 # Parameter mode (Para) and FE mode: analysis and proposal (#74)
 
-Status: analysis and proposal, no code change. The decisions in section 6
-are the maintainer's.
+Status: **stage 1 implemented** (section 7). Sections 1–6 are the analysis
+of the state before, kept as written; the open decisions are in section 6.
+
+Purpose (maintainer, 12 November 2026): Para and FE were made so that
+external programs or parameter files can control the suspension of the
+voice apparatus (positions of the ends of the vocal folds) and the vocal
+folds. This shall remain possible, e.g. to produce a vibrato by varying
+the subglottal pressure, the vocal fold tension or the mouth opening.
 
 ## Summary
 
@@ -266,3 +272,75 @@ Combi calculations stay bit-identical (regression test).
 6. **Old copies:** are the Subversion working copies available somewhere?
    They could contain a more complete FE/Para state or the thesis that
    introduced it.
+
+Answered on 12 November 2026: the FE mode is kept as the control of the
+suspension and the vocal folds by external programs (1, purpose); the
+implementation of stage 1 (section 7) takes the time in seconds, the column
+order of `combicalc` and the coordinates as they are, *save settings* only
+stores (3) and the results are named `out/para_<file>_<i>.mat` (4). Still
+open: the meaning of the FE column groups and the sign of x (1), 2, 5, 6.
+
+## 7. Implementation of stage 1 (#74)
+
+### Control files
+
+A control file is a text file with a time series of parameters; it
+generalises the FE files (format and examples:
+`VOX/matlab/examples/control/README.md`):
+
+- columns `time` [s], `ptg` / `ptg_factor` (subglottal pressure),
+  `tvakt` / `tvakt_factor` (vocal fold tension), `mouth` (factor of the
+  radii of the last 1 cm of the tract), `w0`, `wmax` and the twelve
+  coordinates `w0lp_x` … `wmaxra_z` [µm] (suspension: ends of the vocal
+  folds); old `FE*.txt` (14 columns, time in s, positions in mm) are read
+  in the column order of the old `combicalc`, now with the time in seconds;
+- linear interpolation between the rows, the first and last value hold
+  outside;
+- `combicalc` applies the values in every sample, after the batch
+  modulation; afterwards pressure, tension, positions and area function
+  are back at their values before the calculation (also after an error);
+  the result is saved under the combi name plus the name of the control
+  file (`out_cs_a10000_vibrato_ptg`) and keeps the values used in
+  `data.control`;
+- choice: checkbox **Control** (was *FE*) and the list below it
+  (`examples/control/`, `out/`, *other file...*), `vox('setcontrol', file)`
+  from scripts, or a profile of the parameter mode;
+- `voxvibrato` writes a vibrato file (pressure, tension, mouth opening;
+  factor 1 + depth·sin(2π·rate·t)).
+
+Files: `voxcontrolread.m` (reading), `voxcontrolapply.m` (per sample,
+restore), `voxcontrolfile.m` (choice in the main window), `voxvibrato.m`;
+`combicalc.m`, `voxcombiname.m`, `vox.m` (`FEchange`, `paradisplay`,
+`setcontrol`), `voxgui.m` (labels).
+
+### Parameter mode
+
+- *save settings* stores `voxprofile()` (now with the field `control`) and
+  calculates nothing; the `PROFILE` flag and its block in `combicalc` are
+  gone, so later Combicalcs add no profiles.
+- `voxapplyprofile` sets VOX to a profile completely (switches, duration,
+  Fs, register, vowel, tract model, control file, GUI data, `Infold` with
+  `PTG` and `TVAKT`); fields that old profiles lack keep their current
+  values (`vflength`). It replaces `parameterfile_var.m` and the
+  `eval` call in `vox('initialize')`.
+- *start* (and `parametermode('run', file)` for scripts) applies and
+  calculates every profile and saves `out/para_<file>_<i>.mat` with the
+  profile in `data.profile`; *Quit* stops the series.
+- *load existing file* with a `.txt` chooses that control file
+  (`samplepara.mat` is no longer needed).
+- The separate loading branch of the FE mode in `vox('input')` and the
+  result names `out_B…`/`out_cF…_<nnn>` are gone; results with a control
+  file are loaded like all others.
+
+### Not changed
+
+- The batch mode (`controlfile.m`, periodic or linear modulation of
+  stress, pressure and the first 10 tract radii) is not changed; a
+  control file is applied after it.
+- The old FE mode also set the spring constants `k1 = 2`, `k2 = 4.5` while
+  reading a file; this is not taken over (they keep the values of the
+  register).
+- Fold-only calculations (Fold Calc) do not read control files.
+- Every display of a result takes pressure and tension from that result
+  (`vox('input')`); in the parameter mode set the pressure last before
+  *save settings*.
