@@ -34,7 +34,7 @@ if n_samples > 0
                 ctrlstate   = voxcontrolapply('init', controlname, t);
                 % back to the values before the calculation also after an
                 % error (on the normal way this is done before saving)
-                ctrlcleanup = onCleanup(@() voxcontrolapply('restore', ctrlstate)); %#ok<NASGU>
+                ctrlcleanup = onCleanup(@() voxcontrolapply('restore', ctrlstate));
             end
             timeindex = 1;  % initialize timeindex for batch
             if BATCH % called only once

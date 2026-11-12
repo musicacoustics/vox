@@ -28,7 +28,7 @@ global PARTRACT rvocdefault rtrachdefault MODTRACT TRACTDISP PARNOISE DAMPDB % t
 global GRONT MAXSEGMENTS   MAXDEVLIMIT radimproutine       % tract calc.
 global BATCH IMPORT TRACH FOLD TRACT NOISE QUIT BRK PARA noisemovflag  % combi calc.
 global S SD_NAMES SD_DISP SD_PLOTCMD BG fgstyle bgstyle % GUI
-global FMAX GRON inx Hndl LASTPATH WORKDIR COF% GUI
+global FMAX GRON inx Hndl LASTPATH WORKDIR % GUI
 global figdata%mo:Data crucial for (re)creating figures
 
 if nargin < 1

@@ -2,7 +2,6 @@ function  Hndl = voxgui(Fs,TMAX,PTG,TVAKT,MODAL,HEAD,FALSETT,MODFOLD,MODTRACT,TR
     TRACT,NOISE,GRONF,SURFS,GRONT,popupStr,BG,FMAX,BATCH,initractcalcmode,TRACTDISP,vowel,filevalue,iniinput, ...
     SD_NAMES,SD_DISP,SD_PLOTCMD,GRON,FEswitch,MOV,VIBRO);
 
-global COF
 
 % gui creates gui interface for vox
 
