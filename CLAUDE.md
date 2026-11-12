@@ -24,7 +24,8 @@ accessible; do not push there).
 - `combicalc.m` – coupled fold/tract simulation
 - `noisesig.m` – turbulence noise
 - `foldmod.m`, `areas3.m` – interactive editors for fold and tract geometry
-- `controlfile.m`, `parametermode.m` – batch and parameter modes
+- `controlfile.m`, `parametermode.m` – batch and parameter modes (Para and FE mode:
+  analysis and proposal in `docs/parametermode.md`, #74)
 - `out/` – example results (generated data, should not be version-controlled)
 - `tests/` (repository root) – test suite, see Testing
 
