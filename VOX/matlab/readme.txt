@@ -2,7 +2,9 @@ Welcome to vox, the voice synthesis script for Matlab
 
 Installation:
 1. copy the content of the zip file into any folder on your local disk
-2. run the script "install.m" and select the script "vox.m"
+   (or clone the repository, see README.md in the repository root)
+2. in MATLAB, change to this folder and type "vox"
+   (install.m and voxpath.mat are no longer needed: vox finds its own folder)
 3. vox will launch
 
 Use: 

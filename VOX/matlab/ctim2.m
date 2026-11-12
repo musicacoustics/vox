@@ -11,8 +11,8 @@ function [y_out, z_out, PARCTIM] ...
 % the growing parts of the cone reflections cancel within the round trip of
 % every cone, what remains are finite kernels and a stable recursion. The
 % former conical formulation (preparation, propagator, inputconv,
-% middleconv, outputconv) grew without limit; #45 had replaced the cones by
-% a staircase of cylinders.
+% middleconv, outputconv; removed in #19, see docs/HISTORY.md) grew without
+% limit; #45 had replaced the cones by a staircase of cylinders.
 % Input, glottis end, radiation and output as in the stairs model
 % (voctract, tractsig):
 %
