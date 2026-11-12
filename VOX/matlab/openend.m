@@ -1,4 +1,7 @@
 function [C, A, B] = openend(i, tub, c, deltat)
+% NOTE (#64): part of the former conical formulation (preparation.m),
+% no longer used; the tube model now uses coneprepare.m and conestep.m
+% (docs/conical-tubes.md).
 % open end
 % extremobert(I_) = Block [{l,d1,d2,nu}]
 ke = 727.14;

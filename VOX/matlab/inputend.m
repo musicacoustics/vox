@@ -1,4 +1,7 @@
 function [Cinput, Ainput, Binput] = inputend(tubes, c, zcar)
+% NOTE (#64): part of the former conical formulation (preparation.m),
+% no longer used; the tube model now uses coneprepare.m and conestep.m
+% (docs/conical-tubes.md).
 % input extremity (where h(t) is calculated)
 % extrementrada := Block[{l,d1,d2,nu}]
 L  = tubes(1,1);

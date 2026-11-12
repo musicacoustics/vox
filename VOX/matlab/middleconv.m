@@ -1,6 +1,12 @@
 function [input_plus, input_minus, y_plus_aux, y_minus_aux] = ...
    middleconv(ldisminus1, A, B, y_plus_aux, y_minus_aux, C_plus, C_minus, ...
    input_plus, input_minus, output_plus, output_minus);
+% NOTE (#64): no longer used. Since November 2026 the tube model (ctim2)
+% calculates the conical segments with coneprepare.m and conestep.m:
+% plane waves at the tube ends, finite kernels over the round trip of
+% every cone and a stable recursion (method M2, docs/conical-tubes.md).
+% This file belongs to the former multiconvolution formulation, which
+% grew without limit; it is kept for reference.
 % application of matrices to the discontinuities
 % convoluciodiscontinuitat[i_] := Block[{aux}
 for i=2:ldisminus1

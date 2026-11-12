@@ -1,4 +1,7 @@
 function [C_right, C_left, A, B] = middleend(i, tub, c)
+% NOTE (#64): part of the former conical formulation (preparation.m),
+% no longer used; the tube model now uses coneprepare.m and conestep.m
+% (docs/conical-tubes.md).
 % disconituity i betwen the tube pieces i-1 (a) and i (b)
 % canvitram(i_) := block[{1a,d1a,d2a,ra,lb,d1b,d2b,rb,Bsec,c1,c2,nu}]
 La 	 = tub(i-1,1);

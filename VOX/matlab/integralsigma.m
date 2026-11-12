@@ -1,5 +1,8 @@
 function [b, minf, msup, alfa1, alfa2] ...
    = integralsigma(lcyl, d1, d2, xi, c, deltat, degree)
+% NOTE (#64): part of the former conical formulation (preparation.m),
+% no longer used; the tube model now uses coneprepare.m and conestep.m
+% (docs/conical-tubes.md).
 
 L  = lcyl;
 %d1 = rl*2;
