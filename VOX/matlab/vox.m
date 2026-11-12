@@ -35,9 +35,6 @@ if nargin < 1
     action = 'initialize';
 end;
 
-% show whats done for basti:
-action;
-
 
 switch action
     % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
@@ -1652,20 +1649,6 @@ switch action
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
-
-        % data display callback.
-    case 'datadisplay'
-        data = get(Hndl.figureNumber,'UserData');
-        Mode = data.properties.mode;
-        if get(Hndl.ModFold, 'value') ==  1;
-            % modify foldmod display
-        end;
-        if exist('Hndl.figureNumber')
-            set(findobj('Tag','maxdevlimit'),'Enable','off');
-            set(findobj('Tag','maxsegments'),'Enable','off');
-            set(findobj('Tag','devlimit'),'Enable','off');
-            set(findobj('Tag','segments'),'Enable','off');
-        end;
 
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==

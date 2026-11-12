@@ -45,7 +45,8 @@ function P = coneprepare(tubes, xi, c, dt, radimp)
 %   Cylinders: g1 = g2 = gam = 0, p1 = a1 + D a2: a pure delay.
 %
 %   Losses: half of the viscothermal loss of the tube (kernel of
-%   integralsigma/Martinez and Agullo, coefficients >= 0, sum 1, |H| <= 1)
+%   integralsigma/Martinez and Agullo, coefficients >= 0, sum 1, |H| <= 1;
+%   integralsigma.m of the former formulation was removed in #19)
 %   is applied at each end to the entering and to the leaving wave. The
 %   tube stays passive for every xi.
 %

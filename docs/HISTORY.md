@@ -90,6 +90,30 @@ Except for the tube model, the results did not change. The regression runs of
 fold, tract and combi with stair segments are bit-identical with the previous
 state.
 
+## Removed files (#19, November 2026)
+
+33 m-files that VOX never called were removed: nothing in VOX, in its windows
+(`.fig` callbacks) or in the tests referred to them. Their last version is in
+commit `e35c2d0` (for example `git show e35c2d0:VOX/matlab/preparation.m`).
+
+| Files | What they were |
+|---|---|
+| `preparation.m`, `propagator.m`, `inputconv.m`, `middleconv.m`, `outputconv.m`, `inputend.m`, `middleend.m`, `closedend.m`, `openend.m`, `closedhole.m`, `openhole.m`, `integralsigma.m`, `intsigma1.m`, `intsigma2.m`, `k10.m`, `k11.m`, `k20.m`, `k21.m`, `cosaexp.m` | the former multiconvolution formulation of the tube model (unstable after about 15 ms); replaced by `coneprepare.m` and `conestep.m` in #64, described in `docs/conical-tubes.md` |
+| `gui.m` | an old copy of `voxgui.m` (it defined the function `voxgui`) |
+| `install.m` | wrote `voxpath.mat`, which VOX no longer uses (#22) |
+| `tractinit.m` | an old copy of `datainit.m` with a syntax error |
+| `waitbar_vox.m` | a copy of the MATLAB `waitbar` of 2000; VOX uses `voxwaitbar.m` |
+| `d2m.m`, `par.m`, `theta.m` | a two-mass model (equations, parameters, step function) |
+| `dvp.m` | coupled van der Pol oscillators |
+| `pistonfilt.m`, `pistonfilttest.m` | experiments with a filter for the piston radiation |
+| `soundspass.m` | a sine test signal (it used an undefined variable) |
+| `load_listbox.m` | a GUIDE example for a file list |
+| `voxtabelle.m` | a table of harmonic-to-noise ratios of test persons |
+| `Nachhall.m` | empty |
+
+The unused branch `datadisplay` of `vox.m` (no control called it) was removed as
+well.
+
 ## Plans
 
 1. Clean up the MATLAB code for current releases (issues), protected by reference

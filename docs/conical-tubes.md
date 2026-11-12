@@ -21,6 +21,9 @@ Goal: a stable time-domain implementation of conical segments, with
 
 ## 1. What happened in the original code
 
+The files of the original formulation named below were removed in #19;
+their last version is in commit `e35c2d0` (see `docs/HISTORY.md`).
+
 - Origin: the multiconvolution method of the Barcelona group for woodwind
   bores (Martínez, Agulló, Cardona 1988; Barjau, Keefe, Cardona 1999),
   ported from Mathematica (Catalan names in the comments: `canvitram` =

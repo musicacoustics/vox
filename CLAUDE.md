@@ -19,8 +19,8 @@ accessible; do not push there).
   `contforc.m`, `cplforc.m`, `dampforc.m`; integration in `deq16m.m`
 - `tractsig.m`, `voctract.m` – vocal tract, stairs; `ctim2.m` with `coneprepare.m`
   and `conestep.m` – vocal tract, tubes (conical segments, see
-  `docs/conical-tubes.md`; `propagator.m`, `preparation.m` etc. are the former,
-  unstable formulation, unused)
+  `docs/conical-tubes.md`; the former, unstable formulation `propagator.m`,
+  `preparation.m` etc. was removed in #19, list in `docs/HISTORY.md`)
 - `combicalc.m` – coupled fold/tract simulation
 - `noisesig.m` – turbulence noise
 - `foldmod.m`, `areas3.m` – interactive editors for fold and tract geometry
