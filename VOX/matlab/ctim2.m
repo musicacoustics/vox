@@ -4,7 +4,9 @@ function [y_out, z_out, PARCTIM] ...
 % function ctim2 calculates pressure signals within a cylinder model of the vocal tract.
 % input: tubes (matrice of
 %
-% Conical tubes in the time domain (#64, method M2), see coneprepare.m:
+% NOTE: new calculation since November 2026.
+% Conical tubes in the time domain (#64, method M2), see coneprepare.m and
+% docs/conical-tubes.md:
 % plane pressure waves at the tube ends, spherical waves inside the cones;
 % the growing parts of the cone reflections cancel within the round trip of
 % every cone, what remains are finite kernels and a stable recursion. The

@@ -402,8 +402,11 @@ if n_samples > 0
                 end
                 areas3('tubecalc');
                 sizetubes = size(data.tubes,1);
-                % coupling to the folds as in the stairs branch (#50):
-                % glottal area, pin_gl_ac; radiation as in tractsig
+                % tubes: conical segments, new calculation since November
+                % 2026 (#64, method M2: coneprepare.m, conestep.m,
+                % docs/conical-tubes.md); coupling to the folds as in the
+                % stairs branch (#50): glottal area, pin_gl_ac; radiation
+                % as in tractsig
                 [p_out_mouth, pin_gl_ac, PARCTIM] ...
                     = ctim2(data.tubes, 0, data.properties.damping, ii, PARCTIM, ...
                     out_vf_voc, PARNOISE, glotarea, radimproutine);

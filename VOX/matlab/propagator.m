@@ -2,6 +2,12 @@ function [pressure_plus, pressure_minus, output_plus, output_minus] ...
    = propagator(ldisminus1, pressure_plus, pressure_minus, ...
    output_plus, output_minus, input_plus, input_minus, b, ...
    alfa1, alfa2, minf, msup)
+% NOTE (#64): no longer used. Since November 2026 the tube model (ctim2)
+% calculates the conical segments with coneprepare.m and conestep.m:
+% plane waves at the tube ends, finite kernels over the round trip of
+% every cone and a stable recursion (method M2, docs/conical-tubes.md).
+% This file belongs to the former multiconvolution formulation, which
+% grew without limit; it is kept for reference.
 % applicationi of linear propagation for segment i
 % propagador[i_] := Block[{}
 for i = 1:ldisminus1
