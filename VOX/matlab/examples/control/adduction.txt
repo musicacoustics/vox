@@ -1,0 +1,7 @@
+% VOX control file: adduction of the vocal folds at the onset
+% w0, wmax: distance of both vocal folds from the midline at the posterior
+% (w0) and the anterior (wmax) end [um]; from 300 um (open) to 25 um (the
+% modal default) within 50 ms, then held
+time w0 wmax
+0 300 300
+0.05 25 25
