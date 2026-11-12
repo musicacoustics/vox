@@ -24,8 +24,7 @@ accessible; do not push there).
 - `combicalc.m` – coupled fold/tract simulation
 - `noisesig.m` – turbulence noise
 - `foldmod.m`, `areas3.m` – interactive editors for fold and tract geometry
-- `controlfile.m`, `parametermode.m` – batch and parameter modes (Para and FE mode:
-  analysis and proposal in `docs/parametermode.md`, #74)
+- `controlfile.m`, `parametermode.m` – batch and parameter modes
 - `out/` – example results (generated data, should not be version-controlled)
 - `tests/` (repository root) – test suite, see Testing
 
@@ -125,3 +124,5 @@ Full history, earlier versions and the Java port: `docs/HISTORY.md`.
 - Architecture debt: ~84 global variables, many `try` blocks without `catch`,
   computation and GUI interleaved. Long-term goal: port to Python, with the same
   reference tests as acceptance criteria.
+- Parameter mode (Para) and FE mode: never calculated its profiles with *start*;
+  analysis, files in the old copies and proposal in `docs/parametermode.md` (#74).
