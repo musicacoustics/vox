@@ -484,7 +484,7 @@ switch action
         foldcontrol = voxfoldcontrol('init', floor(Infold.calctime*Fs));
         if ~isempty(foldcontrol)
             PARFOLD = struct('timecontrol', foldcontrol);
-            foldcleanup = onCleanup(@() voxfoldcontrol('restore', foldcontrol)); %#ok<NASGU> also after an error
+            foldcleanup = onCleanup(@() voxfoldcontrol('restore', foldcontrol));   % also after an error
         end
 
         % (no access to the parameters from outside the function)
