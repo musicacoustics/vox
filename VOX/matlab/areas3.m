@@ -553,6 +553,9 @@ switch action
 
       %====================================================================================
       % tubecalc callback
+      % data.tubes: one row [length, left radius, right radius] per tube;
+      % ctim2 calculates them as conical segments (since November 2026:
+      % #64, method M2, coneprepare.m and conestep.m, docs/conical-tubes.md)
    case 'tubecalc'
       data = get(Hndl.figureNumber, 'UserData');
       [data.newradius, data.newradiusintpol, ...

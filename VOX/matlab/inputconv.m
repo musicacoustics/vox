@@ -1,6 +1,12 @@
 function [input_minus, flowinput, y_plus_aux, inputaux] ...
    = inputconv(actualflow, flowinput, A, B, y_plus_aux, output_plus, ...
    input_minus, Ainput, inputaux, Binput, Cinput, C_plus)
+% NOTE (#64): no longer used. Since November 2026 the tube model (ctim2)
+% calculates the conical segments with coneprepare.m and conestep.m:
+% plane waves at the tube ends, finite kernels over the round trip of
+% every cone and a stable recursion (method M2, docs/conical-tubes.md).
+% This file belongs to the former multiconvolution formulation, which
+% grew without limit; it is kept for reference.
 % application of matrices at the discontinuity of the entry
 % convolucioentrada[cabalactual_] := Block[{}
 %flowinput 	 = rotateright(flowinput);
