@@ -18,7 +18,10 @@ modernised at the Detmold University of Music (Music Acoustics).
   function and input impedance
 - **Coupling:** convolution of fold and tract signals, or simultaneous ("combi")
   calculation including trachea, glottal interaction and turbulence noise
-- **Batch and parameter modes** for series of simulations
+- **Batch and parameter modes** for series of simulations; **control files**
+  that vary subglottal pressure, vocal fold tension, mouth opening and the
+  positions of the vocal folds over time (e.g. a vibrato), written by hand
+  or by other programs (`VOX/matlab/examples/control/`)
 - **Output:** time signal, spectrum, spectrogram, mass deflection,
   phonovibrogram, WAV export
 

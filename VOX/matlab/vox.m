@@ -26,9 +26,9 @@ global Fs rho c TMAX XI Xi0 CALC t      % general calc. constants
 global Infold PARFOLD glotareadefault MAXM MAXMdefault MODAL HEAD FALSETT MODFOLD GRONF SURFS MOV VIBRO filename % fold calc.
 global PARTRACT rvocdefault rtrachdefault MODTRACT TRACTDISP PARNOISE DAMPDB % tract calc.
 global GRONT MAXSEGMENTS   MAXDEVLIMIT radimproutine       % tract calc.
-global BATCH IMPORT TRACH FOLD TRACT NOISE QUIT BRK PARA PROFILE noisemovflag  % combi calc.
+global BATCH IMPORT TRACH FOLD TRACT NOISE QUIT BRK PARA noisemovflag  % combi calc.
 global S SD_NAMES SD_DISP SD_PLOTCMD BG fgstyle bgstyle % GUI
-global FMAX GRON inx Hndl LASTPATH WORKDIR COF% GUI
+global FMAX GRON inx Hndl LASTPATH WORKDIR % GUI
 global figdata%mo:Data crucial for (re)creating figures
 
 if nargin < 1
@@ -84,7 +84,6 @@ switch action
         PARA     = 0;    % parameter flag
         FEswitch = 0;
         IMPORT  = 0;    % imported vocaltract areadata flag
-        PROFILE = 0;    % flag for parametermode
         glotareadefault = 3e-6; % 14 mm x .2 mm [m^2]; if NOT FOLD , this value is taken, otherwise minarea
         rvocdefault     = 4;  % VT entrance radius [mm]
         rtrachdefault   = 3;  % Trachea entrance radius [mm]
@@ -133,61 +132,28 @@ switch action
 
         Infold.extForceF0inSamples = 0;
 
-        % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
-        % für Parameterbetrieb
-        % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
-        if nargin >= 2 && strncmp(var, 'para', 4)   % was: try ... var(1:4) ... without catch
-            try
-                paramfig = findobj('Name','Parametermode');
-                handles  = guihandles(paramfig);
-                filename = get(handles.ed_filename,'String');
-                parapath = get(handles.ed_filepath,'String');
-
-                if ischar(filename) && contains(filename,'FE')
-                    parapath = pwd;
-                    load(fullfile(parapath,'samplepara.mat'));
-                else
-                    load(fullfile(parapath,filename));   % parapath may lack a trailing separator
-                end;
-                i = get(paramfig,'Userdata');
-                [data,Infold,PARA,BATCH,FOLD,TRACH,TRACT,NOISE,vowel,iniinput,TVAKT,PTG,TMAX,Fs,MAXSEGMENTS,...
-                    MAXDEVLIMIT,XI,Xi0,MAXM,GRON] ...
-                    = eval([var '(PARA,BATCH,FOLD,TRACH,TRACT,NOISE,vowel,iniinput,TVAKT,PTG,TMAX,Fs,' ...
-                    'MAXSEGMENTS,MAXDEVLIMIT,XI,Xi0,MAXM,GRON,datas(i),i);']);
-            catch err
-                warning('Parameter mode: could not use the parameter file: %s', err.message);
-            end
-        end
+        % (the parameter mode called vox('initialize','parameterfile_var')
+        % for every profile, which reset all settings first and then applied
+        % the profile with eval; since #74 parametermode applies a profile
+        % with voxapplyprofile and calls vox('combicalc') itself)
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
         % Initialize DATA
-        if PARA
-            PARA = 1;
-        else
-            voxclosefunc;   % windows of an earlier VOX session would use the new handles and fail
-            Hndl = voxgui(Fs,TMAX,PTG,TVAKT,MODAL,HEAD,FALSETT,MODFOLD,MODTRACT,TRACH,FOLD, ...
-                TRACT,NOISE,GRONF,SURFS,GRONT,popupStr,BG,FMAX,BATCH,initractcalcmode,TRACTDISP,vowel,filevalue,iniinput, ...
-                SD_NAMES,SD_DISP,SD_PLOTCMD,GRON,FEswitch,MOV,VIBRO);
-        end;
+        voxclosefunc;   % windows of an earlier VOX session would use the new handles and fail
+        Hndl = voxgui(Fs,TMAX,PTG,TVAKT,MODAL,HEAD,FALSETT,MODFOLD,MODTRACT,TRACH,FOLD, ...
+            TRACT,NOISE,GRONF,SURFS,GRONT,popupStr,BG,FMAX,BATCH,initractcalcmode,TRACTDISP,vowel,filevalue,iniinput, ...
+            SD_NAMES,SD_DISP,SD_PLOTCMD,GRON,FEswitch,MOV,VIBRO);
 
-        if PARA
-            set(Hndl.figureNumber,'Userdata',data);
-        end
-        if ~PARA
-            iniinfold;   % Initialization of vocal fold paramter struct Infold.xxx
-            %  data = [];
-            %  [data.radius, data.spacing] = areadata(vowel);
-            datainit(MAXSEGMENTS,MAXDEVLIMIT, ...
-                XI,Xi0,radimproutine);   % initialize data struct
-        end
+        iniinfold;   % Initialization of vocal fold paramter struct Infold.xxx
+        %  data = [];
+        %  [data.radius, data.spacing] = areadata(vowel);
+        datainit(MAXSEGMENTS,MAXDEVLIMIT, ...
+            XI,Xi0,radimproutine);   % initialize data struct
         vox('refreshPopup')   % update vowel list and display data
         set(Hndl.figureNumber,'pointer','arrow');
 
         % END of INITIALIZE section
-        if PARA
-            vox('combicalc');
-        end
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
         % LEFT FUNCTION CALLS
@@ -512,9 +478,25 @@ switch action
             end
         end
 
+        % batch modulation and control file: subglottal pressure and vocal
+        % fold tension over time, applied by siggi in every step (#74);
+        % [] without them (Fold Calc as before)
+        foldcontrol = voxfoldcontrol('init', floor(Infold.calctime*Fs));
+        if ~isempty(foldcontrol)
+            PARFOLD = struct('timecontrol', foldcontrol);
+            foldcleanup = onCleanup(@() voxfoldcontrol('restore', foldcontrol));   % also after an error
+        end
+
         % (no access to the parameters from outside the function)
         QUIT = 0;
         [out_vf_voc, out_vf_trach, minarea, PARFOLD, figdata] = foldsig(PARFOLD);
+        if ~isempty(foldcontrol)   % values back; foldsig returns the trace
+            if isstruct(PARFOLD) && isfield(PARFOLD, 'timecontrol')
+                foldcontrol = PARFOLD.timecontrol;
+            end
+            PARFOLD = [];
+            voxfoldcontrol('restore', foldcontrol);
+        end
         if QUIT ==  0
             filename = ['out_vf_n' num2str(Infold.register) ...
                 num2str(TRACH) num2str(FOLD) num2str(TRACT) num2str(NOISE)];
@@ -524,6 +506,17 @@ switch action
             data.Infold   = Infold;
             data.figdata  = figdata;%mo
             data.filename = filename;
+            if ~isempty(foldcontrol)   % pressure and tension per step
+                data.control = struct('file', foldcontrol.file, 'batch', foldcontrol.batch, ...
+                    'names', {{'ptg', 'tvakt'}}, 'values', foldcontrol.trace(1:numel(out_vf_voc), :));
+            end
+            % the batch settings, as a combi result has them: displaying
+            % the result sets the batch window to them (vox('input')); a
+            % fold result without them set the window back to the defaults
+            ud = get(Hndl.figureNumber, 'UserData');
+            if isfield(ud, 'batch')
+                data.batch = ud.batch;
+            end
             save(voxoutdir(filename), 'data');   % into out/ (#29)
             SD_NAMES(1,:) = [filename '  '];
             if get(Hndl.INPUT, 'value') ~=  3 % if not conv. view
@@ -1025,7 +1018,7 @@ switch action
             set(Hndl.TractCalc,  'Enable', 'off')
             set(Hndl.combi,      'Enable', 'off')
             set(Hndl.ctrl,       'Enable', 'off')
-            set(Hndl.FE,         'Enable', 'off')
+            set(Hndl.FE,         'Enable', 'on')    % control file: pressure, tension (#74)
             set(Hndl.combiload,  'Enable', 'off')
             if voxfigflag('Design of VT area function',1)
                 popupStr = char('stairs','tubes');
@@ -1058,18 +1051,16 @@ switch action
                 set(Hndl.TractMod.Mode,'String',popupStr);
             end
         elseif value ==  4   % combi signal
-            if get(Hndl.FE, 'value') ==  1;
-                SD_NAMES(value,5:15) = ['c' 'F' SD_NAMES(2,7:8) num2str(Infold.register) ...
-                    num2str(TRACH) num2str(FOLD) num2str(TRACT) num2str(NOISE) '  '];
-            else
-                % the vowel of a loaded combi file (combiload); filename is also
-                % set by fold calc, tract calc, dialogs etc., so check that it is one
-                % (with 'out_vf_n10000' the vowel became '_n' and nothing was found)
-                if ischar(filename) && numel(filename) >= 8 && startsWith(filename, {'out_c', 'outmc'})
-                    SD_NAMES(2,7:8) = filename(7:8);
-                end
-                SD_NAMES(value,:) = sprintf('%-15s', voxcombiname());   % same name as combicalc saves under
-            end;
+            % (FE mode: the name had 'cF' at position 5, #74: a control file
+            % now adds its name at the end, see voxcombiname)
+            % the vowel of a loaded combi file (combiload); filename is also
+            % set by fold calc, tract calc, dialogs etc., so check that it is one
+            % (with 'out_vf_n10000' the vowel became '_n' and nothing was found)
+            if ischar(filename) && numel(filename) >= 8 && startsWith(filename, {'out_c', 'outmc'})
+                SD_NAMES(2,7:8) = filename(7:8);
+            end
+            combiname = voxcombiname();   % same name as combicalc saves under
+            SD_NAMES(value,:) = sprintf('%-15.15s', combiname);   % longer with a control file
             set(Hndl.FoldCalc,    'Enable', 'off')
             set(Hndl.TractCalc,   'Enable', 'off')
             set(Hndl.combi,       'Enable', 'on')
@@ -1092,20 +1083,16 @@ switch action
             end
         end;
 
-        % check for FE mode
-        if ischar(filename) && contains(filename,'FE')
-            PARA = 1;
-        elseif ischar(filename) && contains(filename,'out_cF')
-            PARA = 1;
-        else
-            PARA = 0;
-        end;
+        % (the FE mode set PARA here when the global filename contained 'FE'
+        % or 'out_cF' and then loaded its results in a branch of its own;
+        % the parameter mode's popup set COF to load filename directly.
+        % Since #74 controlled and parameter-mode results are loaded here
+        % like all others.)
 
-
-        if ((value == 1)|(value == 2)|(value == 4))& ~PARA & ~IMPORT    % fold, tract or combi signal (only when PARA = 0)
+        if ((value == 1)|(value == 2)|(value == 4)) & ~IMPORT    % fold, tract or combi signal
             % Load file, if available. Otherwise, give empty plot and message in title
-            if COF ==  1
-                file = filename;
+            if value == 4
+                file = combiname;   % may be longer than SD_NAMES (control file)
             else
                 file = SD_NAMES(value,:);
                 file(file ==  ' ') = []; % get rid of extra blanks in filename
@@ -1209,96 +1196,7 @@ switch action
                 n = SD_DISP;
                 eval([SD_PLOTCMD(n,:)]);
                 title(['"' ,strrep(file, '_', '\_') '" not present - calc it?!']);
-                COF = 0;
             end; % of try - catch
-        elseif PARA
-            if ischar(filename) && contains(filename,'out_cF')
-                file = filename;
-                filepath = voxoutdir(file);   % combi result of the parameter mode, in out/ (#29)
-            elseif get(Hndl.FE, 'value') ==  1;
-                file = SD_NAMES(value,:);
-                file(14) = '_';
-                file(15:17) = filename(3:5);
-                file(file ==  ' ') = []; % get rid of extra blanks in filename
-                filepath = voxoutdir(file);
-            elseif ischar(filename) && contains(filename,'FE')
-                file = filename;
-                filepath = file;   % an input file (FE*.txt), not a result
-            end;
-            try
-                Infile = load(filepath);
-                try   % no data struct in file? (old data format)
-                    data.Fs = Infile.Fs;
-                    data.y  = Infile.y(:)';
-                    disp('Old data format!');
-                catch   % generate data struct
-                    if (value ==  2)|(value ==  4)   % tract or combi file
-                        data = Infile.data;
-                    end
-                    if (value ==  1)|(value ==  4)   % fold or combi file
-                        try
-                            data.Infold = Infile.data.Infold;
-                            data.filename = Infile.data.filename;
-                        end
-                    end;
-
-                    try
-                        data.batch = Infile.data.batch;
-                    end
-                    data.Fs = Infile.data.Fs;
-                    try
-                        data.y  = Infile.data.y(:)';
-                    end
-                end
-                try
-                    data.properties.radimp = Infile.data.properties.radimp;
-                catch
-                    data.properties.radimp = radimproutine;
-                end
-
-                try
-                    data.t = (0:length(data.y)-1)/data.Fs;
-                end
-                % length of the displayed signal; it does not change the
-                % Duration field any more (was TMAX = data.Tmax)
-                if ~isfield(data, 'Tmax')
-                    try
-                        data.Tmax = max(data.t)*1000;
-                    catch err
-                        disp(['signal without time vector: ' err.message]);
-                    end
-                end
-                set(Hndl.figureNumber,'UserData',data);
-                n = SD_DISP;
-                eval([SD_PLOTCMD(n,:)]);  % call to plot_tuf,plot_puf or plot_spec
-                try
-                    title(['"', strrep(data.filename, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
-                catch
-                    title(['"', strrep(file, '_', '\_'), '", Fs = ', num2str(data.Fs) 'Hz']);
-                end;
-
-
-            catch % import did not workedit
-                data.y = [-1 1 0 -1 0 1 -1];
-                data.Fs = 1;
-                data.z = [-1 1 0 -1 0 1 -1];
-                data.t = (0:length(data.y)-1)/data.Fs;
-                set(Hndl.figureNumber,'UserData',data);
-                data = get(Hndl.figureNumber,'UserData');
-                set(Hndl.figureNumber,'UserData',data);
-                n = SD_DISP;
-                eval([SD_PLOTCMD(n,:)]);
-                title(['"' strrep(file, '_', '\_') '" not present - calc it?!']);
-                COF = 0;
-            end; % of try - catch
-            %     data.suffix = suffix;
-            %     data.y = [-1 1 0 -1 0 1 -1];
-            %     data.Fs = 1;
-            %     data.t = (0:length(data.y)-1)/data.Fs;
-            %     n = SD_DISP;
-            %     eval([SD_PLOTCMD(n,:)]);
-            %     !title('Parametermode!!');
-
         elseif IMPORT
             %data = get(Hndl.figureNumber,'UserData');
             data.y = [-1 1 0 -1 0 1 -1];
@@ -1684,22 +1582,26 @@ switch action
         % END of Display callback section
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
-    case 'paradisplay'
+    case 'paradisplay'   % list of control files (was: FE inputs)
         if get(Hndl.FE, 'value') ==  1;
-            outfilename = get(Hndl.PARAM,'String');
-            filevalue   = get(Hndl.PARAM,'Value');
-            name        = char(outfilename(filevalue));
-            COF = 1;
-            if ischar(name) && contains(name,'FE')
-                filename = name;
-                PARA     = 1;
-                count    = 1;
-            else
-                filename = name;
-            end;
-
-            vox('input');
+            voxcontrolfile('choose');   % "other file..." opens a dialog
+            if ~CALC
+                vox('input');   % the result with this control file, if any
+            end
         end;
+
+        % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
+        % setcontrol: choose a control file from a script or another program,
+        % vox('setcontrol', file); vox('setcontrol', '') switches it off (#74)
+    case 'setcontrol'
+        if nargin < 2 || isempty(var)
+            voxcontrolfile('select', '');
+        else
+            voxcontrolfile('select', var);
+        end
+        if ~CALC
+            vox('input');
+        end
 
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
@@ -1784,44 +1686,15 @@ switch action
 
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
-    case 'FEchange'
+    case 'FEchange'   % checkbox "Control" (was: FE mode, #74)
+        % control files: subglottal pressure, vocal fold tension, mouth
+        % opening and positions of the vocal folds over time (voxcontrolread);
+        % the old FE*.txt are such files. The list shows those in
+        % examples/control/ and out/; the global filename is no longer used.
         if get(Hndl.FE, 'value') ==  1;
-            found       = false;
-            FEswitch    = 1;
-            files       = dir;
-            [reng, col] = size(files);
-            ii = 1;
-            for r = 1:numel(files)   % 1:size(files) is an error for a size vector
-                list(r,1) = {files(r).name};
-                list1(r,1:length(list{r})) = list{r};
-                if r >=  3
-                    fnam = files(r).name;
-                    if startsWith(fnam, 'FE')   % fnam(1:2) failed for names shorter than 2
-                        list3(1, ii) = {fnam};
-                        ii = ii + 1;
-                        found = true;
-                    end
-                end
-            end
-
-            if (found)
-                set(findobj('Tag','popup' ),'String',list3)
-                set(Hndl.PARAM, 'String', list3);
-
-                outfilename = get(Hndl.PARAM,'String');
-                filevalue   = get(Hndl.PARAM,'Value');
-                fnnn        = outfilename(filevalue);
-                filename    = char(fnnn);
-            else
-                disp('no FE files found.');
-            end
+            voxcontrolfile('list');
         else
-            FEswitch = 0;
-            set(Hndl.PARAM, 'Value', 2);
-            list3 = char(' ',' ');
-            set(findobj('Tag','popup' ),'String',list3)
-            set(Hndl.PARAM, 'String', list3);
-            filename = [];
+            voxcontrolfile('select', '');
         end;
         if ~CALC
             vox('input');

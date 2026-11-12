@@ -24,7 +24,8 @@ accessible; do not push there).
 - `combicalc.m` – coupled fold/tract simulation
 - `noisesig.m` – turbulence noise
 - `foldmod.m`, `areas3.m` – interactive editors for fold and tract geometry
-- `controlfile.m`, `parametermode.m` – batch and parameter modes
+- `controlfile.m`, `parametermode.m` – batch and parameter modes; `voxcontrol*.m` –
+  control files (parameters over time in a combi run, #74)
 - `out/` – everything VOX writes (results, session files, WAV, movies, CSV); ignored
   by git. Build every path of a file that VOX writes or reads back with
   `voxoutdir(name)`; `voxmoveoutput.m` moves files of older versions from next to
@@ -128,3 +129,8 @@ Full history, earlier versions and the Java port: `docs/HISTORY.md`.
 - Architecture debt: ~84 global variables, many `try` blocks without `catch`,
   computation and GUI interleaved. Long-term goal: port to Python, with the same
   reference tests as acceptance criteria.
+- Parameter mode (Para) and control files (former FE mode): external programs or
+  parameter files control the suspension (ends of the vocal folds), the vocal folds
+  (subglottal pressure, tension) and the mouth opening over time, e.g. a vibrato;
+  analysis of the 2010 state and implementation in `docs/parametermode.md` (#74),
+  format in `VOX/matlab/examples/control/README.md`.

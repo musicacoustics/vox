@@ -1,137 +1,27 @@
 % extract the combicalc stuff for better readability
 
-if PROFILE ==  1
-    data     = get(Hndl.figureNumber, 'UserData');
-    iniinput = get(Hndl.INPUT,'Value');
-    vowel    = get(Hndl.VOWEL,'Value');
-    TVAKT    = get(Hndl.tvakt,'Value');
-    PTG      = get(Hndl.ptg,'Value');
-    datas    = struct('data',data,'Infold',Infold,'MODFOLD',MODFOLD,'PARA',PARA,'BATCH',BATCH,'TRACH',TRACH,'FOLD',FOLD, ...
-        'TRACT',TRACT,'NOISE',NOISE,'vowel',vowel,'iniinput',iniinput,'TVAKT',TVAKT,'PTG',PTG, ...
-        'TMAX',TMAX,'Fs',Fs,'MAXSEGMENTS',MAXSEGMENTS,'MAXDEVLIMIT',MAXDEVLIMIT,'XI',XI,'Xi0',Xi0,...
-        'MAXM',MAXM,'GRON',GRON);
-    parametermode('getdata',datas);
-    %    break;
-end
+% (the parameter mode stored its profiles here when PROFILE was set and
+% then calculated; parametermode('save') stores them itself since #74)
 
 CALC = 1;
 setenable(CALC)
 
-% is FE mode activated...
-isfe = get(Hndl.FE, 'Value');
-
 Infold.combicalc = 1;
 
-% FE mode init
-if isfe
-    if ischar(filename) && contains(filename,'FE')
-        PARAMANZ = 14;
-        fnam = filename;
-        fid  = fopen(filename);
-        if fid == -1
-            [errmsg, errnum] = ferror(fid);
-            if errnum ~= 0
-                disp(['1: ' errmsg]);
-            end
-        else
-            fid  = fopen(fnam);
-            if fid>0
-                [errmsg, errnum] = ferror(fid);
-                if errnum ~= 0
-                    disp(['2: ' errmsg]);
-                else
-                    % dont know why i did this (basti)
-                   % display([filename ' not found. so use: ' fnam]);
-                end
-            else
-                errnum = -1;
-            end
-        end
-        if errnum == 0
-            disp(['using ' fnam ' as FE input file'])
-            a    = fscanf(fid,'%f',[PARAMANZ inf]);
-            fclose(fid);
-            b    = a';
-            time = max(b(:,1));
-            TMAX = time;
-        else
-            disp('FE input file not found');
-            isfe = 0;
-        end
-    else
-        isfe = 0;
-    end
-end
+% control file (Control checkbox, parameter mode, vox('setcontrol')):
+% subglottal pressure, vocal fold tension, mouth opening and positions of
+% the vocal folds over time, applied in every sample (#74; replaces the
+% FE mode, which read FE*.txt here and in parameterfile_var)
+controlname = voxcontrolfile();
 
 % combicalc loop init
 n_samples = ceil(TMAX/1000*Fs);%mo: /1000 für ms
 t         = [0:n_samples-1]/Fs;   % time beam for graphic display
 kk        = 1;
-ik        = 1; % index of timestep in fe vector
 
 if n_samples > 0
     % combicalc loop
     for ii = 1:n_samples
-        % read FE file stuff in
-        if isfe
-%             display('femode');
-            time = b(ik,1);
-            time;
-            if t(ii) ==  TMAX
-                return % stop execution
-            else
-                % basti (FE mode):
-                % is there a timestep where we have to change the parameters?
-                % do we need to interpolate here?
-
-                % read parameters from vector
-%                 ik
-                time            = b(ik,1);
-                refactor        = 1000; % this is cause later it is divided trough refactor, so we need to correct it here
-                Infold.wmaxla   = b(ik,2:4).*refactor;   % xyz-positions of vocalfolds left  anterior  (ary)
-%                 lllmaxX         = Infold.wmaxla(1)
-                Infold.w0lp     = b(ik,5:7).*refactor;   % xyz-positions of vocalfolds right posterior (thyr)
-                Infold.wmaxra   = b(ik,8:10).*refactor;  % xyz-positions of vocalfolds left  anterior  (ary)
-%                 rrrmaxX         = Infold.wmaxra(1)
-                Infold.w0rp     = b(ik,11:13).*refactor; % xyz-positions of vocalfolds right posterior (thyr)
-
-
-                Infold.k1     = 2;
-                Infold.k2     = 4.5;
-
-                % read active stress if not null
-                hastvakt = 0;
-                if (b(ik,14)>0)
-                    Infold.tvakt  = b(ik,14);
-                    hastvakt = 1;
-                    %display('found active stress in parameter file, so i use it...');
-                end
-
-
-                % set values to modfold-gui
-                if get(Hndl.ModFold, 'value') ==  1;
-                    MODFOLD = 1;
-                    foldmod('initialize');
-                    foldmod('refreshwmax','strsli');
-                    foldmod('refreshw0','strsli');
-                else
-                    MODFOLD = 0;
-                    try
-                        close(Hndl.ModFoldFig);
-                    end
-                end;
-                % set value to main gui
-                if hastvakt
-                    set(Hndl.tvaktStr, 'String', sprintf('%10.6f', Infold.tvakt)); % set text of slider
-                    vox('refreshtvakt','string'); % set slider to text value
-                end
-                if t(ii) >=  time
-                    ik  = ik + 1;
-                    disp(['use fe step: ' sprintf('%4d', ik)]);
-                end;              
-            end;
-        end;
-
         data = get(Hndl.figureNumber, 'UserData');
         % do it only once...combicalc init
         if ii ==  1
@@ -139,8 +29,18 @@ if n_samples > 0
             % same name as vox('input') looks for (was built separately there)
             combi_filename = [voxcombiname() '  '];
             control_init; % call script for initial parameter definitions
+            if ~isempty(controlname)   % values of the control file per sample
+                disp(['combi: control file ' controlname]);
+                ctrlstate   = voxcontrolapply('init', controlname, t);
+                % back to the values before the calculation also after an
+                % error (on the normal way this is done before saving)
+                ctrlcleanup = onCleanup(@() voxcontrolapply('restore', ctrlstate));
+            end
             timeindex = 1;  % initialize timeindex for batch
             if BATCH % called only once
+                % values before the run: the modulation started from the
+                % last modulated values of the previous run before (#74)
+                batchbase = struct('tvakt', Infold.tvakt, 'ptg', Infold.ptg, 'radius', data.radius);
                 modvar.actstr = Infold.tvakt;
                 modvar.subpre = Infold.ptg;
                 modvar.radius = data.radius;
@@ -307,6 +207,12 @@ if n_samples > 0
                 end
             end
         end;
+
+        % control file: pressure, tension, positions, mouth of this sample
+        % (after the batch mode, so that the control file wins) (#74)
+        if ~isempty(controlname)
+            voxcontrolapply('apply', ctrlstate, ii);
+        end
 
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == =
@@ -527,7 +433,35 @@ if n_samples > 0
     end; % end combicalc main loop
 
     disp('loop end');
-    
+
+    % control file: pressure, tension, positions and area function back to
+    % the values before the calculation; the values used are kept with the
+    % result (data.control)
+    if ~isempty(controlname)
+        voxcontrolapply('restore', ctrlstate);
+        if ~isempty(ctrlstate.mouthidx)
+            data.radius = ctrlstate.radius;
+        end
+        nused = numel(out_y);
+        data.control = struct('file', controlname, 'names', {ctrlstate.names}, ...
+            'values', ctrlstate.values(1:nused, :));
+    elseif isfield(data, 'control')
+        data = rmfield(data, 'control');   % of a loaded controlled result
+    end
+    % batch mode: active stress, subglottal pressure and tract radii back to
+    % the values before the run; they kept the last modulated values, and
+    % every further run started from there (#74)
+    if BATCH && exist('batchbase', 'var')
+        Infold.tvakt = batchbase.tvakt;
+        Infold.ptg   = batchbase.ptg;
+        data.radius  = batchbase.radius;
+        batchdata = get(Hndl.figureNumber, 'UserData');
+        batchdata.radius = batchbase.radius;
+        set(Hndl.figureNumber, 'UserData', batchdata);
+        vox('refreshptg', 'strsli');
+        vox('refreshtvakt', 'strsli');
+    end
+
     if ishghandle(Hndl.mainwaitfigure)   % vox('break') may have closed it already
         close(Hndl.mainwaitfigure)
     end
@@ -582,28 +516,12 @@ if n_samples > 0
         data.Infold                      = Infold;
         data.Tmax                         = max(time);
         combi_filename(combi_filename ==  ' ') = []; % get rid of extra blanks in filename
-        if PARA
-            %         if findstr(filename,'FE') > 0 & filename ~=  0
-            %             suffix = ['fem',num2str(i)];
-            %         else
-            %             suffix = ['para',num2str(i)];
-            %         end;
-            %         data.suffix = suffix;
-            %       combi_filename = [combi_filename data.suffix];
-            if ischar(filename) && contains(filename,'FE')
-                combi_filename(5) = 'c';
-                combi_filename(6) = 'F';
-                combi_filename(14) = '_';
-                combi_filename(15:17) = filename(3:5);
-            else
-                combi_filename(5) = 'B';
-            end;
-        end
+        % (Para named its results out_B... and FE results out_cF..._<nnn>;
+        % since #74 a control file adds its name, see voxcombiname, and the
+        % parameter mode saves every profile's result as para_<file>_<n>)
         data.filename                   = combi_filename;
         save(voxoutdir(combi_filename), 'data');   % vox('input') loads it from out/ (#29)
-        if ~PARA
-            SD_NAMES(4,:) = [combi_filename '  '];
-        end
+        SD_NAMES(4,:) = sprintf('%-15.15s', combi_filename);   % 15 characters (longer with a control file)
         set(Hndl.INPUT, 'value', 4);
         vox('input');
     end;
