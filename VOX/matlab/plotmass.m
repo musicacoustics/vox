@@ -249,15 +249,7 @@ else	% create figure
     xlabel('Both folds, top view, x [mm] -->');
     ylabel('y [mm] -->');
 
-    % layout (#70): with subplot(4,1,k) the 3D view got a quarter of the
-    % window height (about 100 pixels in a window of 720): squashed box,
-    % overlapping labels. The 3D view gets the upper 28 %, the three 2D
-    % panels share the rest.
-    set(Hndl.plotmassax2, 'Position', [0.10 0.70 0.85 0.28]);
-    set(Hndl.plotmassax1, 'Position', [0.13 0.52 0.775 0.12]);
-    set(Hndl.plotmassax3, 'Position', [0.13 0.31 0.775 0.13]);
-    set(Hndl.plotmassax4, 'Position', [0.13 0.10 0.775 0.13]);
-
+    
     % make text for frequency
     btnPos = [0.35 0 0.40 0.030];
     Hndl.ef_f0_txt = uicontrol( ...
