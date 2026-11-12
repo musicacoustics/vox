@@ -45,7 +45,7 @@ stub = fullfile(tempdir, ['voxtest_duration_' char(datetime('now', 'Format', 'HH
 mkdir(stub);
 fid = fopen(fullfile(stub, 'uigetfile.m'), 'w');
 fprintf(fid, 'function [f, p, i] = uigetfile(varargin)\nf = ''out_vf_n10000.mat''; p = [%s filesep]; i = 1;\n', ...
-    ['''' strrep(fullfile(voxdir, 'out'), '''', '''''') '''']);
+    ['''' strrep(fullfile(voxdir, 'examples'), '''', '''''') '''']);   % examples/ since #29
 fclose(fid);
 warning('off', 'MATLAB:dispatcher:nameConflict');
 addpath(stub); rehash;

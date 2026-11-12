@@ -155,7 +155,7 @@ if n_samples > 0
                 end
                 file(file ==  ' ') = []; % get rid of extra blanks in filename
                 try
-                    foldfile  = load(file);   % hier werden y, filename etc überschrieben!
+                    foldfile  = load(voxoutdir(file));   % hier werden y, filename etc überschrieben! (in out/, #29)
                     if foldfile.data.Fs ==  Fs    % file Fs = global Fs -> do nothing
                     elseif foldfile.data.Fs > Fs
                         disp('decimate vocal fold signal...');
@@ -563,6 +563,7 @@ if n_samples > 0
        ef_duration    = get(handles.durationslider,  'Value')*100; % get value of duration in percent of f0
        if ef_force>0 && ef_duration>0
            areafilename   = ['externalforce_glottalarea_' sprintf('%g', ef_force*100) 'mN_'  sprintf('%g', ef_duration) 'percent.csv'];
+           areafilename   = voxoutdir(areafilename);   % into out/ (#29)
            writematrix(Infold.completeareafunction, areafilename);   % csvwrite is not recommended
            disp(['wrote area function into file: ' areafilename]);
        end
@@ -599,7 +600,7 @@ if n_samples > 0
             end;
         end
         data.filename                   = combi_filename;
-        save(combi_filename, 'data');
+        save(voxoutdir(combi_filename), 'data');   % vox('input') loads it from out/ (#29)
         if ~PARA
             SD_NAMES(4,:) = [combi_filename '  '];
         end

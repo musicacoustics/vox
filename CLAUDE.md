@@ -25,7 +25,11 @@ accessible; do not push there).
 - `noisesig.m` – turbulence noise
 - `foldmod.m`, `areas3.m` – interactive editors for fold and tract geometry
 - `controlfile.m`, `parametermode.m` – batch and parameter modes
-- `out/` – example results (generated data, should not be version-controlled)
+- `out/` – everything VOX writes (results, session files, WAV, movies, CSV); ignored
+  by git. Build every path of a file that VOX writes or reads back with
+  `voxoutdir(name)`; `voxmoveoutput.m` moves files of older versions from next to
+  `vox.m` into `out/` at the start (#29)
+- `examples/` – example results of older versions (tracked; VOX does not write there)
 - `tests/` (repository root) – test suite, see Testing
 
 ## Environment
@@ -49,7 +53,7 @@ accessible; do not push there).
   many windows and waitbars. Start long runs as background jobs and do not wait idle.
 - Use the suite in `tests/`: `matlab -noFigureWindows -batch "cd tests; runvoxtests"`
   (see `tests/README.md`). It works on copies of `VOX/matlab` in `tempdir`, because VOX
-  saves its results into its own folder, and compares with the branch `main`:
+  saves its results into its own folder (`out/`), and compares with the branch `main`:
   Code Analyzer of the changed files, bit-identical regression runs, GUI sweep over
   all controls of the main window (file dialogs stubbed as cancelled), tube model
   against a frequency-domain reference.

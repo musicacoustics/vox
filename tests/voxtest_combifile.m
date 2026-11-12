@@ -24,7 +24,7 @@ nfail = 0;
 % folds calculated: fold file of 30 ms, combi up to the largest fold signal
 setinput(1); type('30');
 vox('foldcalc');
-nfile = numel(getfield(load('out_vf_n10000.mat'), 'data', 'y')); %#ok<GFLD>
+nfile = numel(getfield(load(fullfile('out', 'out_vf_n10000.mat')), 'data', 'y')); %#ok<GFLD> results in out/ (#29)
 setinput(4); type('30');
 vox('combicalc');
 d = get(Hndl.figureNumber, 'UserData');
@@ -43,7 +43,7 @@ stub = fullfile(tempdir, ['voxtest_combifile_' char(datetime('now', 'Format', 'H
 mkdir(stub);
 fid = fopen(fullfile(stub, 'uigetfile.m'), 'w');
 fprintf(fid, 'function [f, p, i] = uigetfile(varargin)\nf = ''out_vf_n10000.mat''; p = [%s filesep]; i = 1;\n', ...
-    ['''' strrep(voxdir, '''', '''''') '''']);
+    ['''' strrep(fullfile(voxdir, 'out'), '''', '''''') '''']);
 fclose(fid);
 warning('off', 'MATLAB:dispatcher:nameConflict');
 addpath(stub); rehash;
