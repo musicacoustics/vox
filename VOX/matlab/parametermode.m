@@ -1,6 +1,6 @@
 function parametermode(callback, var)
 % functions for the parametermode
-global PROFILE profilenum filename parapath datas Hndl numstr WORKDIR
+global PROFILE profilenum filename parapath datas Hndl numstr
 
 if nargin < 1
    callback = 'initialize';
@@ -29,7 +29,7 @@ switch callback
       set(handles.bt_start,'Enable','off');
       set(handles.pop_profilenum,'string','0');
       set(handles.pop_profilenum,'Value',profilenum);
-      parapath = WORKDIR;
+      parapath = voxoutdir;   % parameters.mat goes into out/ (#29)
       set(handles.ed_filepath,'String',parapath);
       filename = 'parameters.mat';
       datas = voxprofile();   % template for the structure (parameters.mat is not in the repository)
@@ -70,7 +70,7 @@ switch callback
    case 'new'
       %===========================================================================================================================
 
-      [newname, newpath] = uiputfile('para*.mat',['Welches mat-File soll es sein?']);
+      [newname, newpath] = uiputfile(voxoutdir('para*.mat'),['Welches mat-File soll es sein?']);   % starts in out/ (#29)
       if isequal(newname, 0)
          return   % cancelled: keep the current file (it was overwritten with the template before)
       end

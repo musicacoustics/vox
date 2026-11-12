@@ -15,21 +15,21 @@ desktop.ini
 VOX/matlab/voxpath
 VOX/matlab/voxpath.mat
 
-# Results that VOX writes next to vox.m
+# Everything VOX writes: results, session files, WAV, movies, CSV,
+# parameter files (#29). The example results are in VOX/matlab/examples/.
+VOX/matlab/out/
+
+# Files that VOX wrote next to vox.m before #29; vox moves them into out/
+# at its next start (voxmoveoutput.m)
 VOX/matlab/out*.mat
 VOX/matlab/out*.wav
 VOX/matlab/out_vf_n00000
 VOX/matlab/last_filename.mat
 VOX/matlab/recorded.mat
 VOX/matlab/background.mat
+VOX/matlab/para*.mat
+VOX/matlab/*.wav
 VOX/matlab/*.avi
 VOX/matlab/foldmov_*.fig
 VOX/matlab/combimov_*.fig
-
-# Example results in out/
-# Note: files already tracked stay tracked until removed once with
-#   git rm -r --cached VOX/matlab/out VOX/matlab/voxpath VOX/matlab/voxpath.mat
-VOX/matlab/out/
-
-# Parameter files written by the parameter mode (Para), e.g. parameters.mat
-VOX/matlab/para*.mat
+VOX/matlab/externalforce_glottalarea_*.csv

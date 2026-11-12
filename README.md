@@ -48,7 +48,10 @@ cd vox/VOX/matlab
 vox
 ```
 
-VOX stays in this folder and saves its results there.
+VOX stays in this folder. Everything it writes (results, WAV exports, movies,
+session files) goes into the subfolder `out/`, which git ignores; the save and
+load dialogs start there. Results of older VOX versions that are still next to
+`vox.m` are moved into `out/` at the start. Example results are in `examples/`.
 
 1. Choose the operation mode in the **Input** menu (upper right): Folds, Tract,
    VF*VT or Combi. VOX shows a result of this mode that was calculated before, if

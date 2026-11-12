@@ -119,15 +119,13 @@ switch action
         % check working directory
         WORKDIR = fileparts(mfilename('fullpath')); % folder of vox.m (replaces voxpath.mat, works on every computer)
         cd(WORKDIR);
-        if ~isfolder(fullfile(WORKDIR, 'out'))
-            [state, msg] = mkdir(fullfile(WORKDIR, 'out')); % create subdirectory "out"
-            if ~state
-                error('Could not create subdirectory ''out'': %s', msg);
-            end
-        end
+        % all files VOX writes go into the subdirectory "out" (voxoutdir
+        % creates it); files that earlier versions wrote next to vox.m are
+        % moved there (#29)
+        voxmoveoutput(WORKDIR);
         % stay in WORKDIR: VOX is not on the MATLAB path and finds its
         % functions only from here
-        LASTPATH = fullfile(WORKDIR, 'out');
+        LASTPATH = voxoutdir;
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == =
         % for external forces
@@ -373,7 +371,7 @@ switch action
         % FOLDLOAD callback.
     case 'foldload'
         %[filename, pathname] = uigetfile('out_vf*.mat', 'choose input fold file');
-        [filename, pathname] = uigetfile('*.mat', 'choose input fold file');%mo
+        [filename, pathname] = uigetfile(voxoutdir('*.mat'), 'choose input fold file');%mo (starts in out/, #29)
         if filename ~=  0
             value = 1;
             Infold.register = 0;      % 1: Modal, 2: Head, 3: Falsett
@@ -416,13 +414,13 @@ switch action
             end
             MAXM = Infold.maxm;%mo
             SD_NAMES(value,:) = ['out_vf_n00000  '];
-            save('out_vf_n00000','data');
+            save(voxoutdir('out_vf_n00000'),'data');   % all output into out/ (#29)
             set(Hndl.FoldCalc, 'enable', 'off');
             set(Hndl.INPUT, 'value', 1);
             vox('input');
             filename = ['out_vf_n' num2str(Infold.register) ...
                 num2str(TRACH) num2str(FOLD) num2str(TRACT) num2str(NOISE)];
-            save(filename, 'data');
+            save(voxoutdir(filename), 'data');
             SD_NAMES(1,:) = [filename '  '];
             if get(Hndl.INPUT, 'value') ~=  3 % if not conv. view
                 set(Hndl.INPUT, 'value', 1); % switch to fold view
@@ -440,7 +438,7 @@ switch action
         set(Hndl.modal,   'value', 0);
         set(Hndl.head,    'value', 0);
         set(Hndl.falsett, 'value', 0);
-        initfilename = ['out_vf*.mat'];
+        initfilename = voxoutdir('out_vf*.mat');   % the dialog starts in out/ (#29)
         [filename, pathname] = uiputfile(initfilename, 'choose output fold file');
         if filename ~=  0
             data = get(Hndl.figureNumber,'UserData');
@@ -449,7 +447,7 @@ switch action
             data.figdata  = figdata;
             save([pathname filename], 'data')
             SD_NAMES(value,:) = ['out_vf_n00000  '];
-            save('out_vf_n00000','data');
+            save(voxoutdir('out_vf_n00000'),'data');
             set(Hndl.FoldCalc, 'enable', 'off');
             %    vox('input');
         end;
@@ -486,7 +484,7 @@ switch action
         % init movie for fold mode, combimovie shouldnt be inited here...
         if GRONF & MOV
             %dialog + set filename and pathname
-            [fileName, pathName] = uiputfile('*.avi','Save .avi file');
+            [fileName, pathName] = uiputfile(voxoutdir('*.avi'),'Save .avi file');   % starts in out/ (#29)
             %avifiles   = dir('out/foldmov_*.avi');
             Hndl.movisgood  = -1;
             Hndl.foldmovfig = '';
@@ -526,7 +524,7 @@ switch action
             data.Infold   = Infold;
             data.figdata  = figdata;%mo
             data.filename = filename;
-            save(filename, 'data');
+            save(voxoutdir(filename), 'data');   % into out/ (#29)
             SD_NAMES(1,:) = [filename '  '];
             if get(Hndl.INPUT, 'value') ~=  3 % if not conv. view
                 set(Hndl.INPUT, 'value', 1); % switch to fold view
@@ -809,17 +807,18 @@ switch action
         %cd('d:\projects\vox\out\');
         % do not change the working folder (VOX finds its functions only in
         % WORKDIR); start the dialog in out/ instead
-        [filename, pathname] = uigetfile(fullfile(WORKDIR, 'out', ['out' modechar '*.mat']), 'choose input tract file');
+        [filename, pathname] = uigetfile(voxoutdir(['out' modechar '*.mat']), 'choose input tract file');
         if ischar(filename)
             filename = filename(1:(length(filename)-4));
             src = fullfile(pathname, [filename '.mat']);
-            % vox('input') loads SD_NAMES(value,:) from the working folder:
+            % vox('input') loads SD_NAMES(value,:) from out/ (#29):
             % copy the file there as it is (also the old format with Fs, y),
             % but do not silently replace a different file of that name,
-            % e.g. the own result out_st_a when out/out_st_a.mat is chosen
-            dst = [deblank(filename(1:min(end, 15))) '.mat'];
+            % e.g. the own result out_st_a when examples/out_st_a.mat is chosen
+            dst = voxoutdir([deblank(filename(1:min(end, 15))) '.mat']);
             if isfile(dst) && ~isequaln(load(src), load(dst))
-                answer = questdlg(['The VOX folder already contains a different "' dst ...
+                [~, dstname, dstext] = fileparts(dst);
+                answer = questdlg(['The folder out/ already contains a different "' dstname dstext ...
                     '". Replace it with the selected file?'], 'Load tract file', ...
                     'Replace', 'Cancel', 'Cancel');
                 if strcmp(answer, 'Replace')
@@ -852,7 +851,7 @@ switch action
             data.filename = filename;
             data.pathname = pathname;
             % loading a file does not change the Duration field (was TMAX = data.Tmax)
-            save(['out_' modechar 'fi'],'data');
+            save(voxoutdir(['out_' modechar 'fi']),'data');   % into out/ (#29)
             set(Hndl.TractCalc, 'enable', 'off');
             set(Hndl.INPUT, 'value', 2);
             vox('input');
@@ -872,7 +871,7 @@ switch action
         else
             initfile = ['out_tt' stamp '.mat'];
         end;
-        [filename, pathname] = uiputfile(initfile, 'choose output tract file');
+        [filename, pathname] = uiputfile(voxoutdir(initfile), 'choose output tract file');   % starts in out/ (#29)
         if filename ~=  0
             data = get(Hndl.figureNumber,'UserData');
             data.filename = filename;
@@ -926,7 +925,7 @@ switch action
                 end;
             end;
             data.filename = filename;
-            save(filename, 'data');
+            save(voxoutdir(filename), 'data');   % into out/ (#29)
             SD_NAMES(2,:) = [filename blanks(7)];
             if get(Hndl.INPUT, 'value') ==  3
                 set(Hndl.INPUT, 'value', 3);
@@ -979,7 +978,7 @@ switch action
         if get(Hndl.toback, 'value') ==  1;
             BG = 1;
             bg = get(Hndl.figureNumber,'UserData');
-            save('background', 'bg');
+            save(voxoutdir('background'), 'bg');   % plot_tuf/plot_puf load it from out/ (#29)
         else
             BG = 0;
             if ~CALC
@@ -1112,7 +1111,7 @@ switch action
                 file(file ==  ' ') = []; % get rid of extra blanks in filename
             end;
             try
-                Infile = load(file);
+                Infile = load(voxoutdir(file));   % results are in out/ (#29)
                 try   % no data struct in file? (old data format)
                     data.Fs = Infile.Fs;
                     data.y  = Infile.y(:)';
@@ -1139,7 +1138,7 @@ switch action
                         % into out/ (was [WORKDIR,'\out'] without separator:
                         % outout_fm_a.mat in the VOX folder; the variable path
                         % also hid the MATLAB function) (#12)
-                        save(fullfile(WORKDIR, 'out', ['out',modechar,vowelname]),'data');
+                        save(voxoutdir(['out',modechar,vowelname]),'data');
                     end
                     if (value ==  1)|(value ==  4)   % fold or combi file
                         try
@@ -1215,16 +1214,19 @@ switch action
         elseif PARA
             if ischar(filename) && contains(filename,'out_cF')
                 file = filename;
+                filepath = voxoutdir(file);   % combi result of the parameter mode, in out/ (#29)
             elseif get(Hndl.FE, 'value') ==  1;
                 file = SD_NAMES(value,:);
                 file(14) = '_';
                 file(15:17) = filename(3:5);
                 file(file ==  ' ') = []; % get rid of extra blanks in filename
+                filepath = voxoutdir(file);
             elseif ischar(filename) && contains(filename,'FE')
                 file = filename;
+                filepath = file;   % an input file (FE*.txt), not a result
             end;
             try
-                Infile = load(file);
+                Infile = load(filepath);
                 try   % no data struct in file? (old data format)
                     data.Fs = Infile.Fs;
                     data.y  = Infile.y(:)';
@@ -1313,13 +1315,13 @@ switch action
             SD_NAMES(1,:) = ['out_vf_n' num2str(Infold.register) ...
                 num2str(TRACH) num2str(FOLD) num2str(TRACT) num2str(NOISE) '  '];
             try % check sampling rates and decimate signal, if necessary.
-                S_vf = load(deblank(SD_NAMES(1,:)));
+                S_vf = load(voxoutdir(deblank(SD_NAMES(1,:))));   % results are in out/ (#29)
                 warning off
                 try % test if data struct exists in Fold file
                     S_vf.y  = S_vf.data.y;
                     S_vf.Fs = S_vf.data.Fs;
                 end
-                S_vt = load(deblank(SD_NAMES(2,:)));
+                S_vt = load(voxoutdir(deblank(SD_NAMES(2,:))));
                 try % test if data struct exists in Tract file
                     S_vt.y  = S_vt.data.y;
                     S_vt.Fs = S_vt.data.Fs;
@@ -1410,7 +1412,7 @@ switch action
 
         if value ==  5   % load matlab variable with Fs and y or data.Fs/data.y
 %            cd(LASTPATH)
-            [filename, pathname] = uigetfile('*.mat', 'choose input file');
+            [filename, pathname] = uigetfile(voxoutdir('*.mat'), 'choose input file');   % starts in out/ (#29)
             if filename ~=  0
                 LASTPATH = pathname;
                 filename = filename(1:(length(filename)-4));
@@ -1426,7 +1428,7 @@ switch action
                 data.pathname = pathname;
                 data.filename = filename;
                 cd(WORKDIR)
-                save('last_filename','data');   % save as 'last_filename'
+                save(voxoutdir('last_filename'),'data');   % save as 'last_filename', in out/ (#29)
                 set(Hndl.INPUT, 'value', 8);
                 vox('input');
             end;
@@ -1434,7 +1436,7 @@ switch action
 
         if value ==  6   % load microsoft wav file
 %            cd(LASTPATH)
-            [filename, pathname] = uigetfile('*.wav', 'choose input file');
+            [filename, pathname] = uigetfile(voxoutdir('*.wav'), 'choose input file');   % starts in out/ (#29)
             if filename ~=  0
                 %      LASTPATH = data.pathname;
                 data = struct();   % only the signal goes to last_filename, not the GUI data
@@ -1461,7 +1463,7 @@ switch action
                 SD_NAMES(value,:) = [filename blanks(15-length(filename))];
                 data.filename = filename;
                 data.pathname = pathname;
-                save('last_filename','data');
+                save(voxoutdir('last_filename'),'data');
                 set(Hndl.INPUT, 'value', 8);
                 vox('input');
             end;
@@ -1497,7 +1499,7 @@ switch action
                     data.filename = [data.filename(1:12) '...'];
                 end;
                 SD_NAMES(value,:) = [data.filename blanks(15-length(data.filename))];
-                save('last_filename', 'data');
+                save(voxoutdir('last_filename'), 'data');
                 set(Hndl.INPUT, 'value', 8);
                 vox('input');
             end;
@@ -1506,8 +1508,8 @@ switch action
 
         if value ==  8   % load last filename
 
-            if isfile(fullfile(WORKDIR, 'last_filename.mat'))
-                L = load(fullfile(WORKDIR, 'last_filename.mat'), 'data');
+            if isfile(voxoutdir('last_filename.mat'))
+                L = load(voxoutdir('last_filename.mat'), 'data');
                 % replace only the signal: the model data (radius, properties,
                 % ...) must stay for Tract Calc; drop the impedance and the
                 % internal signals (out, shown by GRON/waterfall) of the
@@ -1536,8 +1538,8 @@ switch action
         end;
 
         if value ==  9   % load last recorded signal
-            if isfile(fullfile(WORKDIR, 'recorded.mat'))
-                L = load(fullfile(WORKDIR, 'recorded.mat'), 'data');
+            if isfile(voxoutdir('recorded.mat'))
+                L = load(voxoutdir('recorded.mat'), 'data');
                 % replace only the signal, keep the model data (see LastFile)
                 data = get(Hndl.figureNumber,'UserData');
                 data = rmfield(data, intersect({'z', 'out'}, fieldnames(data)));
@@ -1749,7 +1751,7 @@ switch action
             data.t = t;
             data.Fs =  Fs;
             data.filename = 'recorded';
-            save('recorded', 'data');
+            save(voxoutdir('recorded'), 'data');   % LastRec loads it from out/ (#29)
             %    set(Hndl.figureNumber,'UserData',data);
             %    n = SD_DISP;
             %    eval([SD_PLOTCMD(n,:)]);
@@ -1827,7 +1829,8 @@ switch action
 
         % == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
     case 'combiload'
-        [loadname, pathname] = uigetfile('****c*.mat', 'choose combi input file');
+        % starts in out/, where vox('input') looks for the combi result (#29)
+        [loadname, pathname] = uigetfile(voxoutdir('****c*.mat'), 'choose combi input file');
         if ischar(loadname)   % dialog not cancelled
             filename = loadname;
             vox('input');
@@ -2075,7 +2078,6 @@ switch action
         value = get(Hndl.INPUT, 'Value');
         file = SD_NAMES(value,:);
         file(file ==  ' ') = []; % get rid of extra blanks in filename
-        path      = '';
         filename  = file;
         extension = '';
         %  filestring = [path filename extension];
@@ -2087,10 +2089,10 @@ switch action
         s = (2*s./(maxy-miny)-(maxy+miny)/(maxy-miny))./1.0001;
         figure(372);plot((1:length(s))./data.Fs, s);   % rate of the signal, not of the GUI (#57)
         [~, filename] = fileparts(filename);   % 'a.wav' -> 'a', avoids 'a.wav.wav'
-        audiowrite([path filename '.wav'], s, data.Fs);
+        audiowrite(voxoutdir([filename '.wav']), s, data.Fs);   % automatic copy, into out/ (#29)
         sound(s, data.Fs);
         %mo
-        initfilename = ['out_*.wav'];
+        initfilename = voxoutdir('out_*.wav');   % the dialog starts in out/
         [filename, pathname] = uiputfile(initfilename, 'choose output wav file');
         if ischar(filename)   % dialog not cancelled
             [~, filename] = fileparts(filename);   % uiputfile already adds .wav
