@@ -267,34 +267,37 @@ if n_samples > 0
             if IMPORT & (ii <=  size(data.importradius,1))
                 data        = get(Hndl.figureNumber,'Userdata');
                 data.radius = data.importradius(ii,:);
+                % glottal width wimp = [left right]: x of the anterior
+                % positions Infold.wmaxla/wmaxra [um] (params.m); the scalar
+                % Infold.wmax of the former fold model no longer exists (#58)
                 if ii ==  1  % open glottis
-                    Infold.wmaxold = Infold.wmax;
-                    Infold.wmax    = Infold.xmax*1000;
+                    Infold.wmaxold = [Infold.wmaxla(1), Infold.wmaxra(1)];
+                    wimp           = Infold.xmax*1000*[1 1];
                     flag = 0;
                 end
 
                 % smoothly closing glottis
                 flag = flag +1;
                 if flag ==  1
-                    delta = floor((Infold.wmax-Infold.wmaxold)/200);
+                    delta = floor((wimp-Infold.wmaxold)/200);
                 end
                 if (ii > data.phonsamples(1)-200) & (ii < data.phonsamples(1))
-                    if Infold.wmax > Infold.wmaxold
-                        Infold.wmax = Infold.wmax - delta;
-                    end
+                    wsel       = wimp > Infold.wmaxold;
+                    wimp(wsel) = wimp(wsel) - delta(wsel);
                 end
                 if ii ==  data.phonsamples(1)
-                    Infold.wmax = Infold.wmaxold;
+                    wimp = Infold.wmaxold;
                 end
                 % smoothly opening glottis
                 if (ii > data.phonsamples(end)-200) & (ii < data.phonsamples(end))
-                    if Infold.wmax < Infold.xmax*1000
-                        Infold.wmax = Infold.wmax + delta;
-                    end
+                    wsel       = wimp < Infold.xmax*1000;
+                    wimp(wsel) = wimp(wsel) + delta(wsel);
                 end
                 if ii ==  data.phonsamples(end)
-                    Infold.wmax = Infold.xmax*1000;
+                    wimp = Infold.xmax*1000*[1 1];
                 end
+                Infold.wmaxla(1) = wimp(1);
+                Infold.wmaxra(1) = wimp(2);
 
 
                 set(Hndl.figureNumber,'UserData',data);
